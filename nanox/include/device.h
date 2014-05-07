@@ -30,11 +30,11 @@
 #endif
 
 #ifndef HAVE_SIGNAL
-#define HAVE_SIGNAL		1		/* =1 has signal system call*/
+#define HAVE_SIGNAL		0		/* =1 has signal system call*/
 #endif
 
 #ifndef HAVE_MMAP
-#define HAVE_MMAP       1       /* =1 has mmap system call*/
+#define HAVE_MMAP       0       /* =1 has mmap system call*/
 #endif
 
 /* control whether printf/fprintf required in server and demo programs and C library*/

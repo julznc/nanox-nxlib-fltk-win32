@@ -10,6 +10,10 @@
 #include <signal.h>
 #include <string.h>
 
+#if WIN32
+#include <windows.h>
+#endif
+
 #if PSP
 #include <pspkernel.h>
 #include <pspdebug.h>

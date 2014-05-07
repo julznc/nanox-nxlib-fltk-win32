@@ -12,7 +12,7 @@
 #endif
 
 /* configurable options*/
-#define USE_ALLOCA	1			/* alloca() is available */
+#define USE_ALLOCA	0			/* alloca() is available */
 
 #if 0000	/* use if stdint.h missing*/
 /* typedef 32 bit types for 16 and 64 bit environments*/
