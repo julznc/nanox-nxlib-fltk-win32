@@ -1,0 +1,97 @@
+
+NANOX_DIR = ../nanox
+
+INCLUDES = -I./include -I$(NANOX_DIR)/include
+
+CFLAGS = 
+	
+OBJS = \
+	DestWind.o \
+	MapWindow.o \
+	NextEvent.o \
+	OpenDis.o \
+	ClDisplay.o \
+	Window.o \
+	CrGC.o \
+	FreeGC.o \
+	StName.o \
+	Sync.o \
+	Flush.o \
+	CrWindow.o \
+	Text.o \
+	DrLine.o \
+	DrLines.o \
+	DrPoint.o \
+	DrRect.o \
+	DrArc.o \
+	MapRaised.o \
+	RaiseWin.o \
+	LowerWin.o \
+	FillRct.o \
+	CrPixmap.o \
+	Clear.o \
+	MoveWin.o \
+	ClearArea.o \
+	UnmapWin.o \
+	RepWindow.o \
+	ChWindow.o \
+	Backgnd.o \
+	BdrWidth.o \
+	Border.o \
+	PmapBgnd.o \
+	fontlist.o \
+	font_find.o \
+	UnloadFont.o \
+	QueryFont.o \
+	DefCursor.o \
+	UndefCurs.o \
+	CrCursor.o \
+	FontCursor.o \
+	CrBFData.o \
+	CrPFBData.o \
+	Region.o \
+	SelInput.o \
+	Atom.o \
+	QueryTree.o \
+	Image.o \
+	WindowProperty.o \
+	Misc.o \
+	SetWMProps.o \
+	Bell.o \
+	Copy.o \
+	SetClip.o \
+	Visual.o \
+	StrToText.o \
+	SetAttributes.o \
+	FillPolygon.o \
+	StrKeysym.o \
+	ChProperty.o \
+	QueryPointer.o \
+	ErrorHandler.o \
+	ListPix.o \
+	GetGeom.o \
+	SetIFocus.o \
+	Shape.o \
+	ClassHint.o \
+	Text16.o \
+	TextExt.o \
+	AllocColor.o \
+	ParseColor.o \
+	QueryColor.o \
+	Colormap.o \
+	Colorname.o \
+	Selection.o \
+	XMisc.o \
+	Free.o \
+	stub.o
+
+%.o : %.c
+	@echo [CC] $?
+	@gcc $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+all: $(OBJS)
+	ar rcs lib/libnx.a $(OBJS)
+	@echo done
+
+clean:
+	rm -rf $(OBJS)

@@ -2,7 +2,7 @@
 #define _NXLIB_H_
 
 /* Changeable options*/
-#define USE_ALLOCA				1	/* set if system has alloca()*/
+//#define USE_ALLOCA				1	/* set if system has alloca()*/
 #define HAVE_STATICFONTS 		0	/* set to include static buffered fonts when no filesystem*/
 #define MALLOC_0_RETURNS_NULL	0	/* not yet needed*/
 
@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <malloc.h>
 
+#define X11_RGBTXT	"./rgb.txt"
+
 /* malloc stuff*/
 #if MALLOC_0_RETURNS_NULL
 /* for machines that do not return a valid pointer for malloc(0)*/
@@ -41,7 +43,7 @@
 /* alloca() is available, so use it for better performance */
 #define ALLOCA(size)	alloca(size)
 #define FREEA(pmem)
-#else
+#elif !defined(ALLOCA)
 /* no alloca(), so use malloc()/free() instead */
 #define ALLOCA(size)	Xmalloc(size)
 #define FREEA(pmem)	Xfree(pmem)
