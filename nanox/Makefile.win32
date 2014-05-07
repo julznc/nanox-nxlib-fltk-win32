@@ -1,0 +1,93 @@
+
+FT2_DIR = ../freetype
+
+INCLUDES = -I./include -I$(FT2_DIR)/include
+
+CFLAGS = -DNANOWM=1 -DNONETWORK=1 -DMW_NOSIGNALS=1 -DHAVE_FILEIO=1 \
+		-DMW_FEATURE_IMAGES=1 -DHAVE_BMP_SUPPORT=1 -DHAVE_XPM_SUPPORT=1 \
+		-DHAVE_PCF_SUPPORT=1 -DHAVE_FREETYPE_2_SUPPORT=1 -DHAVE_FNT_SUPPORT=1 \
+		-DNOSTDPAL2 -DNOSTDPAL4 -DNOSTDPAL8
+
+NanoxObjs = \
+	nanox/srvmain.o \
+	nanox/srvfunc.o \
+	nanox/srvutil.o \
+	nanox/srvevent.o \
+	nanox/srvclip.o \
+	nanox/nxdraw.o \
+	nanox/nxutil.o \
+	nanox/nxtransform.o \
+	nanox/wmaction.o \
+	nanox/wmclients.o \
+	nanox/wmevents.o \
+	nanox/wmutil.o \
+	nanox/clientfb.o
+
+EngineObjs = \
+	engine/convblit_8888.o \
+	engine/convblit_frameb.o \
+	engine/convblit_mask.o \
+	engine/devarc.o \
+	engine/devblit.o \
+	engine/devclip.o \
+	engine/devdraw.o \
+	engine/devfont.o \
+	engine/devimage.o \
+	engine/devimage_stretch.o \
+	engine/devkbd.o \
+	engine/devlist.o \
+	engine/devmouse.o \
+	engine/devopen.o \
+	engine/devpal1.o \
+	engine/devpoly.o \
+	engine/devrgn.o \
+	engine/devrgn2.o \
+	engine/devstipple.o \
+	engine/devtimer.o \
+	engine/font_dbcs.o \
+	engine/font_fnt.o \
+	engine/font_freetype2.o \
+	engine/font_pcf.o \
+	engine/image_bmp.o \
+	engine/image_gif.o \
+	engine/image_jpeg.o \
+	engine/image_png.o \
+	engine/image_pnm.o \
+	engine/image_tiff.o \
+	engine/image_xpm.o \
+	engine/selfont.o
+
+DriversObjs = \
+	drivers/fb.o \
+	drivers/fblin1.o \
+	drivers/fblin2.o \
+	drivers/fblin4.o \
+	drivers/fblin8.o \
+	drivers/fblin16.o \
+	drivers/fblin24.o \
+	drivers/fblin32.o \
+	drivers/fbportrait_down.o \
+	drivers/fbportrait_left.o \
+	drivers/fbportrait_right.o \
+	drivers/rasterops.o \
+	drivers/genfont.o \
+	drivers/genmem.o \
+	drivers/kbd_win32.o \
+	drivers/mou_win32.o \
+	drivers/scr_win32.o
+
+FontsObjs = fonts/X6x13.o \
+	fonts/winFreeSansSerif11x13.o
+	
+OBJS = $(NanoxObjs) $(EngineObjs) $(DriversObjs) $(FontsObjs)
+
+%.o : %.c
+	@echo [CC] $?
+	@gcc $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+all: $(OBJS)
+	ar rcs lib/libnanox.a $(OBJS)
+	@echo done
+
+clean:
+	rm -rf $(OBJS)
