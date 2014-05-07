@@ -83,7 +83,7 @@ CFLAGS   := -c -Wall -g -O2 -DFT_CONFIG_CONFIG_H="<ftconfig.h>"
 
 # ANSIFLAGS: Put there the flags used to make your compiler ANSI-compliant.
 #
-ANSIFLAGS := -pedantic -ansi
+ANSIFLAGS := -pedantic
 
 # C compiler to use -- we use libtool!
 #
