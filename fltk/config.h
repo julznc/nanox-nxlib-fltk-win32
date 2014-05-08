@@ -128,6 +128,7 @@
 
 #define USE_X11 1
 #undef WIN32 // force to use nanox/nxlib
+#define USE_NANOX 1
 
 /*
  * HAVE_OVERLAY:

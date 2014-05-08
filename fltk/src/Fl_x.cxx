@@ -672,9 +672,10 @@ void fl_open_display(Display* d) {
     else XRRUpdateConfiguration_f = NULL;
     }
 #endif
-
+#ifndef USE_NANOX // problem with nanox window manager
   // Listen for changes to _NET_WORKAREA
   XSelectInput(d, RootWindow(d, fl_screen), PropertyChangeMask);
+#endif
 }
 
 void fl_close_display() {
