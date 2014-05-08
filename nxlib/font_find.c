@@ -71,8 +71,10 @@ _nxSetFontDir(char **directories, int ndirs)
 	_nxFreeFontDir(&_nxfontlist);
 
 	_nxfontlist = (char **)calloc(ndirs+1, sizeof(char *));
-	for (i = 0; i < ndirs; i++)
+	for (i = 0; i < ndirs; i++) {
+		printf("nxSetFontDir %d = %s\n", i, directories[i]);
 		_nxfontlist[i] = strdup(directories[i]);
+	}
 
 	_nxfontcount = ndirs;
 }

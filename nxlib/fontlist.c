@@ -23,6 +23,12 @@
  * Adobe Type1 files will be found by filename.pfb if in a directory
  */
 char *FONT_DIR_LIST[] = {
+#ifdef WIN32
+	".",
+	"fonts",
+	"C:/Windows/Fonts",
+	0
+#else
 	"fonts",									/* local font dir w/fonts.alias*/
 	"/usr/share/fonts/X11/misc",				/* pcf fonts w/fonts.dir*/
 	"/usr/share/fonts/X11/100dpi",
@@ -32,6 +38,7 @@ char *FONT_DIR_LIST[] = {
 	"/var/lib/defoma/x-ttcidfont-conf.d/dirs/TrueType",	/* truetype fonts, w/fonts.dir & fonts.scale*/
 	"/usr/share/fonts/X11/Type1",				/* t1lib type1 .pfb fonts, w/fonts.dir*/
 	0
+#endif
 };
 
 #if HAVE_STATICFONTS

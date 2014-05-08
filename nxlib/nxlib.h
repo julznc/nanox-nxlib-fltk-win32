@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <malloc.h>
 
-#define X11_RGBTXT	"./rgb.txt"
+#define X11_RGBTXT	"fonts/rgb.txt"
 
 /* malloc stuff*/
 #if MALLOC_0_RETURNS_NULL

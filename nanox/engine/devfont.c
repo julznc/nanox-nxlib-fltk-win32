@@ -175,6 +175,8 @@ GdCreateFont(PSD psd, const char *name, MWCOORD height, MWCOORD width, const PMW
 #if HAVE_FREETYPE_2_SUPPORT
  	if (fontclass == MWLF_CLASS_ANY || fontclass == MWLF_CLASS_FREETYPE) {
 		/* FIXME auto antialias for height > 14 for kaffe*/
+		if(scrinfo.ncolors >= (1 << 16))
+			fontattr |= MWTF_ANTIALIAS;
 		if (plogfont && abs(plogfont->lfHeight) > FT_MINAA_HEIGHT && plogfont->lfQuality)
 				fontattr |= MWTF_ANTIALIAS;
 
