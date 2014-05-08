@@ -53,7 +53,7 @@ static HDC dcBuffer = NULL;
 static HBITMAP dcBitmap = NULL;
 static HBITMAP dcOldBitmap;
 static HANDLE dummyEvent = NULL;
-
+static BITMAPV4HEADER bmpInfo;
 static int scr_width;
 static int scr_height;
 
@@ -160,7 +160,7 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 	wincl.hInstance = hInstance;
 	wincl.lpszClassName = APP_NAME;
 	wincl.lpfnWndProc = (WNDPROC)myWindowProc;
-	wincl.style = CS_HREDRAW | CS_VREDRAW; // | CS_OWNDC; CS_DBLCLKS;
+	wincl.style = CS_OWNDC;
 	wincl.cbSize = sizeof (WNDCLASSEX);
 
 	wincl.hIcon = LoadIcon (NULL, IDI_APPLICATION);
@@ -176,8 +176,9 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 		return NULL;
 	}
 	
-	winRootWindow = CreateWindowEx ( 0, APP_NAME, APP_NAME, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, psd->xres, psd->yres, HWND_DESKTOP, NULL, hInstance, NULL );
+	winRootWindow = CreateWindowEx ( 0, APP_NAME, APP_NAME,
+		WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
+		scr_width, scr_height, HWND_DESKTOP, NULL, hInstance, NULL );
 	
 	if (winRootWindow) {
 		HDC dc = GetDC(winRootWindow);
@@ -188,38 +189,10 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 		dcOldBitmap = SelectObject(dcBuffer, dcBitmap);
 		ReleaseDC(winRootWindow, dc);
 		dummyEvent = CreateEvent(NULL, TRUE, FALSE, "");
-		ShowWindow(winRootWindow, SW_SHOW);
+		ShowWindow(winRootWindow, SW_SHOWNORMAL);//SW_SHOWDEFAULT);
 		UpdateWindow(winRootWindow);
 	}
-	
-	return &scrdev;
-}
-
-static void
-win32_close(PSD psd)
-{
-	if (winRootWindow)
-		SendMessage(winRootWindow, WM_DESTROY, 0, 0);
-}
-
-
-static void
-win32_getscreeninfo(PSD psd, PMWSCREENINFO psi)
-{
-	gen_getscreeninfo(psd, psi);
-	psi->fbdriver = FALSE;	/* not running fb driver, no direct map */
-}
-
-static void
-win32_update(PSD psd, MWCOORD x, MWCOORD y, MWCOORD width, MWCOORD height)
-{
-	// full area redraw
-	unsigned char *addr = psd->addr;
-	BITMAPV4HEADER bmpInfo;
-	
-	if(psd->pixtype != MWPF_TRUECOLOR8888)
-		return; // todo: other pixtypes
-	
+		
 	memset(&bmpInfo, 0, sizeof(bmpInfo));
 	bmpInfo.bV4Size = sizeof(bmpInfo);
 	bmpInfo.bV4Width = psd->xres;
@@ -240,6 +213,36 @@ win32_update(PSD psd, MWCOORD x, MWCOORD y, MWCOORD width, MWCOORD height)
 	bmpInfo.bV4ClrImportant = 0;   
 	bmpInfo.bV4CSType = LCS_CALIBRATED_RGB;
 	
+	return &scrdev;
+}
+
+static void
+win32_close(PSD psd)
+{
+	if (winRootWindow)
+		SendMessage(winRootWindow, WM_DESTROY, 0, 0);
+	if(psd->addr)
+		free(psd->addr);
+}
+
+
+static void
+win32_getscreeninfo(PSD psd, PMWSCREENINFO psi)
+{
+	gen_getscreeninfo(psd, psi);
+	psi->fbdriver = FALSE;	/* not running fb driver, no direct map */
+}
+
+static void
+win32_update(PSD psd, MWCOORD x, MWCOORD y, MWCOORD width, MWCOORD height)
+{
+#if 0// full area update
 	SetDIBitsToDevice(dcBuffer, 0, 0, psd->xres, psd->yres, 0, 0, 0, psd->yres,
+			psd->addr, (BITMAPINFO*)&bmpInfo, DIB_RGB_COLORS);
+#else // faster (?)
+	unsigned char *addr = psd->addr + ((y * psd->xres * psd->bpp) >> 3);
+	
+	SetDIBitsToDevice(dcBuffer, x, y, psd->xres, psd->yres, x, y, y, psd->yres,
 			addr, (BITMAPINFO*)&bmpInfo, DIB_RGB_COLORS);
+#endif
 }
