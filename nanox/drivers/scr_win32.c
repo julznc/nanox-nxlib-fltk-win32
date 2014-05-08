@@ -17,24 +17,15 @@
 #include "genmem.h"
 #include "genfont.h"
 
-#define APP_NAME "Microwindows"
+#define APP_NAME "Nano-X Window"
 
-/* SCREEN_WIDTH, SCREEN_HEIGHT and MWPIXEL_FORMAT define window size*/
-#ifndef SCREEN_WIDTH
-#define SCREEN_WIDTH	240
-#endif
-
-#ifndef SCREEN_HEIGHT
-#define SCREEN_HEIGHT	320
-#endif
+/* default screen size */
+#define DEFAULT_SCREEN_WIDTH	240
+#define DEFAULT_SCREEN_HEIGHT	320
 
 #ifndef MWPIXEL_FORMAT
 #define MWPIXEL_FORMAT	MWPF_TRUECOLOR8888
 #endif
-
-/* externally set override values from nanox/srvmain.c*/
-MWCOORD	nxres;			/* requested server x res*/
-MWCOORD	nyres;			/* requested server y res*/
 
 /* specific driver entry points*/
 static PSD win32_open(PSD psd);
@@ -62,6 +53,9 @@ static HDC dcBuffer = NULL;
 static HBITMAP dcBitmap = NULL;
 static HBITMAP dcOldBitmap;
 static HANDLE dummyEvent = NULL;
+
+static int scr_width;
+static int scr_height;
 
 LRESULT
 myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
@@ -93,7 +87,7 @@ myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_PAINT:
 		dc = GetDC(winRootWindow);
-		BitBlt(dc, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, dcBuffer, 0, 0, SRCCOPY);
+		BitBlt(dc, 0, 0, scr_width, scr_height, dcBuffer, 0, 0, SRCCOPY);
 		ReleaseDC(winRootWindow, dc);
 		break;
 	case WM_DESTROY:
@@ -117,17 +111,19 @@ win32_open(PSD psd)
 	HANDLE hInstance = GetModuleHandle(NULL);
 	RECT rect;
 	PSUBDRIVER subdriver;
-	WNDCLASS wc;
+	WNDCLASSEX wincl;
 
-	GetWindowRect(GetDesktopWindow(), &rect);
-	psd->xvirtres = rect.right - rect.left;
-	psd->yvirtres = rect.bottom - rect.top;
-	if (psd->xvirtres > SCREEN_WIDTH)
-		psd->xvirtres = SCREEN_WIDTH;
-	if (psd->yvirtres > SCREEN_HEIGHT)
-		psd->yvirtres = SCREEN_HEIGHT;
-	psd->xres = psd->xvirtres;
-	psd->yres = psd->yvirtres;
+	scr_width = getenv("NXSCREEN_WIDTH")? atoi(getenv("NXSCREEN_WIDTH")) : DEFAULT_SCREEN_WIDTH;
+	scr_height = getenv("NXSCREEN_HEIGHT")? atoi(getenv("NXSCREEN_HEIGHT")) : DEFAULT_SCREEN_HEIGHT;
+	
+	if( 60 > scr_width || scr_width > 1920 )
+		scr_width = DEFAULT_SCREEN_WIDTH;
+		
+	if( 80 > scr_height || scr_height > 1080 )
+		scr_height = DEFAULT_SCREEN_HEIGHT;
+	
+	psd->xres = psd->xvirtres = scr_width;
+	psd->yres = psd->yvirtres = scr_height;
 	psd->planes = 1;
 	psd->pixtype = MWPIXEL_FORMAT;
 #if (MWPIXEL_FORMAT == MWPF_TRUECOLOR8888) || (MWPIXEL_FORMAT == MWPF_TRUECOLORABGR)
@@ -160,20 +156,29 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 	/* set subdriver into screen driver*/
 	set_subdriver(psd, subdriver);
 
-		wc.style           = CS_HREDRAW | CS_VREDRAW; // | CS_OWNDC;
-		wc.lpfnWndProc     = (WNDPROC)myWindowProc;
-		wc.cbClsExtra      = 0;
-		wc.cbWndExtra      = 0;
-		wc.hInstance       = hInstance;
-		wc.hIcon           = LoadIcon(NULL, IDI_APPLICATION);
-		wc.hCursor         = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground   = GetStockObject(WHITE_BRUSH);
-		wc.lpszMenuName    = NULL;
-		wc.lpszClassName   = APP_NAME;
-		RegisterClass(&wc);
+	/* The Window structure */
+	wincl.hInstance = hInstance;
+	wincl.lpszClassName = APP_NAME;
+	wincl.lpfnWndProc = (WNDPROC)myWindowProc;
+	wincl.style = CS_HREDRAW | CS_VREDRAW; // | CS_OWNDC; CS_DBLCLKS;
+	wincl.cbSize = sizeof (WNDCLASSEX);
 
-	winRootWindow = CreateWindow(APP_NAME, "", WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU, 0, 0, 
-			SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, hInstance, NULL);
+	wincl.hIcon = LoadIcon (NULL, IDI_APPLICATION);
+	wincl.hIconSm = LoadIcon (NULL, IDI_APPLICATION);
+	wincl.hCursor = LoadCursor (NULL, IDC_ARROW);
+	wincl.lpszMenuName = NULL;
+	wincl.cbClsExtra = 0;
+	wincl.cbWndExtra = 0;
+	wincl.hbrBackground = (HBRUSH) COLOR_BACKGROUND;
+
+	if (!RegisterClassEx (&wincl)) {
+		free(psd->addr);
+		return NULL;
+	}
+	
+	winRootWindow = CreateWindowEx ( 0, APP_NAME, APP_NAME, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, psd->xres, psd->yres, HWND_DESKTOP, NULL, hInstance, NULL );
+	
 	if (winRootWindow) {
 		HDC dc = GetDC(winRootWindow);
 
@@ -186,6 +191,7 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 		ShowWindow(winRootWindow, SW_SHOW);
 		UpdateWindow(winRootWindow);
 	}
+	
 	return &scrdev;
 }
 
