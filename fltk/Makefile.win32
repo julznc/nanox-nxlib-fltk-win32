@@ -1,0 +1,305 @@
+
+NXLIB_DIR = ../nxlib
+
+INCLUDES = -I. -I$(NXLIB_DIR) -Ijpeg -Ipng -Izlib
+
+CFLAGS = -DFL_LIBRARY=1
+	
+# libfltk.a
+FltkObjs = \
+	src/Fl.o \
+	src/Fl_Adjuster.o \
+	src/Fl_Bitmap.o \
+	src/Fl_Browser.o \
+	src/Fl_Browser_.o \
+	src/Fl_Browser_load.o \
+	src/Fl_Box.o \
+	src/Fl_Button.o \
+	src/Fl_Chart.o \
+	src/Fl_Check_Browser.o \
+	src/Fl_Check_Button.o \
+	src/Fl_Choice.o \
+	src/Fl_Clock.o \
+	src/Fl_Color_Chooser.o \
+	src/Fl_Counter.o \
+	src/Fl_Dial.o \
+	src/Fl_Device.o \
+	src/Fl_Double_Window.o \
+	src/Fl_File_Browser.o \
+	src/Fl_File_Chooser.o \
+	src/Fl_File_Chooser2.o \
+	src/Fl_File_Icon.o \
+	src/Fl_File_Input.o \
+	src/Fl_Group.o \
+	src/Fl_Help_View.o \
+	src/Fl_Image.o \
+	src/Fl_Input.o \
+	src/Fl_Input_.o \
+	src/Fl_Light_Button.o \
+	src/Fl_Menu.o \
+	src/Fl_Menu_.o \
+	src/Fl_Menu_Bar.o \
+	src/Fl_Sys_Menu_Bar.o \
+	src/Fl_Menu_Button.o \
+	src/Fl_Menu_Window.o \
+	src/Fl_Menu_add.o \
+	src/Fl_Menu_global.o \
+	src/Fl_Multi_Label.o \
+	src/Fl_Native_File_Chooser.o \
+	src/Fl_Overlay_Window.o \
+	src/Fl_Pack.o \
+	src/Fl_Paged_Device.o \
+	src/Fl_Pixmap.o \
+	src/Fl_Positioner.o \
+	src/Fl_Preferences.o \
+	src/Fl_Printer.o \
+	src/Fl_Progress.o \
+	src/Fl_Repeat_Button.o \
+	src/Fl_Return_Button.o \
+	src/Fl_Roller.o \
+	src/Fl_Round_Button.o \
+	src/Fl_Scroll.o \
+	src/Fl_Scrollbar.o \
+	src/Fl_Shared_Image.o \
+	src/Fl_Single_Window.o \
+	src/Fl_Slider.o \
+	src/Fl_Table.o \
+	src/Fl_Table_Row.o \
+	src/Fl_Tabs.o \
+	src/Fl_Text_Buffer.o \
+	src/Fl_Text_Display.o \
+	src/Fl_Text_Editor.o \
+	src/Fl_Tile.o \
+	src/Fl_Tiled_Image.o \
+	src/Fl_Tree.o \
+	src/Fl_Tree_Item.o \
+	src/Fl_Tree_Item_Array.o \
+	src/Fl_Tree_Prefs.o \
+	src/Fl_Tooltip.o \
+	src/Fl_Valuator.o \
+	src/Fl_Value_Input.o \
+	src/Fl_Value_Output.o \
+	src/Fl_Value_Slider.o \
+	src/Fl_Widget.o \
+	src/Fl_Window.o \
+	src/Fl_Window_fullscreen.o \
+	src/Fl_Window_hotspot.o \
+	src/Fl_Window_iconize.o \
+	src/Fl_Wizard.o \
+	src/Fl_XBM_Image.o \
+	src/Fl_XPM_Image.o \
+	src/Fl_abort.o \
+	src/Fl_add_idle.o \
+	src/Fl_arg.o \
+	src/Fl_compose.o \
+	src/Fl_display.o \
+	src/Fl_get_key.o \
+	src/Fl_get_system_colors.o \
+	src/Fl_grab.o \
+	src/Fl_lock.o \
+	src/Fl_own_colormap.o \
+	src/Fl_visual.o \
+	src/Fl_x.o \
+	src/filename_absolute.o \
+	src/filename_expand.o \
+	src/filename_ext.o \
+	src/filename_isdir.o \
+	src/filename_list.o \
+	src/filename_match.o \
+	src/filename_setext.o \
+	src/fl_arc.o \
+	src/fl_arci.o \
+	src/fl_ask.o \
+	src/fl_boxtype.o \
+	src/fl_color.o \
+	src/fl_cursor.o \
+	src/fl_curve.o \
+	src/fl_diamond_box.o \
+	src/fl_dnd.o \
+	src/fl_draw.o \
+	src/fl_draw_image.o \
+	src/fl_draw_pixmap.o \
+	src/fl_encoding_latin1.o \
+	src/fl_encoding_mac_roman.o \
+	src/fl_engraved_label.o \
+	src/fl_file_dir.o \
+	src/fl_font.o \
+	src/fl_gtk.o \
+	src/fl_labeltype.o \
+	src/fl_line_style.o \
+	src/fl_open_uri.o \
+	src/fl_oval_box.o \
+	src/fl_overlay.o \
+	src/fl_overlay_visual.o \
+	src/fl_plastic.o \
+	src/fl_read_image.o \
+	src/fl_rect.o \
+	src/fl_round_box.o \
+	src/fl_rounded_box.o \
+	src/fl_set_font.o \
+	src/fl_set_fonts.o \
+	src/fl_scroll_area.o \
+	src/fl_shadow_box.o \
+	src/fl_shortcut.o \
+	src/fl_show_colormap.o \
+	src/fl_symbols.o \
+	src/fl_vertex.o \
+	src/screen_xywh.o \
+	src/fl_utf8.o \
+	src/fl_call_main.o \
+	src/flstring.o \
+	src/scandir.o \
+	src/numericsort.o \
+	src/vsnprintf.o \
+	src/fl_utf.o \
+	src/xutf8\case.o \
+	src/xutf8\is_right2left.o \
+	src/xutf8\is_spacing.o \
+	src/xutf8\keysym2Ucs.o \
+	src/xutf8\utf8Input.o \
+	src/xutf8\utf8Utils.o \
+	src/xutf8\utf8Wrap.o
+
+# libfltk_forms.a
+FormsObjs = \
+	src/forms_compatability.o \
+	src/forms_bitmap.o \
+	src/forms_free.o \
+	src/forms_fselect.o \
+	src/forms_pixmap.o \
+	src/forms_timer.o
+
+# libfltk_images.a
+ImagesObjs = \
+	src/fl_images_core.o \
+	src/Fl_BMP_Image.o \
+	src/Fl_File_Icon2.o \
+	src/Fl_GIF_Image.o \
+	src/Fl_Help_Dialog.o \
+	src/Fl_JPEG_Image.o \
+	src/Fl_PNG_Image.o \
+	src/Fl_PNM_Image.o
+	
+#libfltk_jpeg.a
+JpegObjs = \
+	jpeg/jaricom.o \
+	jpeg/jcapimin.o \
+	jpeg/jcapistd.o \
+	jpeg/jcarith.o \
+	jpeg/jccoefct.o \
+	jpeg/jccolor.o \
+	jpeg/jcdctmgr.o \
+	jpeg/jchuff.o \
+	jpeg/jcinit.o \
+	jpeg/jcmainct.o \
+	jpeg/jcmarker.o \
+	jpeg/jcmaster.o \
+	jpeg/jcomapi.o \
+	jpeg/jcparam.o \
+	jpeg/jcprepct.o \
+	jpeg/jcsample.o \
+	jpeg/jctrans.o \
+	jpeg/jdapimin.o \
+	jpeg/jdapistd.o \
+	jpeg/jdarith.o \
+	jpeg/jdatadst.o \
+	jpeg/jdatasrc.o \
+	jpeg/jdcoefct.o \
+	jpeg/jdcolor.o \
+	jpeg/jddctmgr.o \
+	jpeg/jdhuff.o \
+	jpeg/jdinput.o \
+	jpeg/jdmainct.o \
+	jpeg/jdmarker.o \
+	jpeg/jdmaster.o \
+	jpeg/jdmerge.o \
+	jpeg/jdpostct.o \
+	jpeg/jdsample.o \
+	jpeg/jdtrans.o \
+	jpeg/jerror.o \
+	jpeg/jfdctflt.o \
+	jpeg/jfdctfst.o \
+	jpeg/jfdctint.o \
+	jpeg/jidctflt.o \
+	jpeg/jidctfst.o \
+	jpeg/jidctint.o \
+	jpeg/jmemmgr.o \
+	jpeg/jmemnobs.o \
+	jpeg/jquant1.o \
+	jpeg/jquant2.o \
+	jpeg/jutils.o
+	
+#libfltk_png.a
+PngObjs = \
+	png/png.o \
+	png/pngset.o \
+	png/pngget.o \
+	png/pngrutil.o \
+	png/pngtrans.o \
+	png/pngwutil.o \
+	png/pngread.o \
+	png/pngrio.o \
+	png/pngwio.o \
+	png/pngwrite.o \
+	png/pngrtran.o \
+	png/pngwtran.o \
+	png/pngmem.o \
+	png/pngerror.o \
+	png/pngpread.o
+	
+#libfltk_z.a
+ZlibObjs = \
+	zlib/adler32.o \
+	zlib/compress.o \
+	zlib/crc32.o \
+	zlib/deflate.o \
+	zlib/gzclose.o \
+	zlib/gzlib.o \
+	zlib/gzread.o \
+	zlib/gzwrite.o \
+	zlib/infback.o \
+	zlib/inffast.o \
+	zlib/inflate.o \
+	zlib/inftrees.o \
+	zlib/trees.o \
+	zlib/uncompr.o \
+	zlib/zutil.o
+	
+
+%.o : %.cxx
+	@echo [CXX] $?
+	@g++ $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+%.o : %.c
+	@echo [CC] $?
+	@gcc $(INCLUDES) $(CFLAGS) -c $< -o $@
+	
+all: libfltk libfltk_forms libfltk_images libfltk_jpeg libfltk_png libfltk_z
+	@echo done.
+
+libfltk: $(FltkObjs)
+	@echo [AR] $@
+	@ar rcs lib/$@.a $^
+	
+libfltk_forms: $(FormsObjs)
+	@echo [AR] $@
+	@ar rcs lib/$@.a $^
+
+libfltk_images: $(ImagesObjs)
+	@echo [AR] $@
+	@ar rcs lib/$@.a $^
+
+libfltk_jpeg: $(JpegObjs)
+	@echo [AR] $@
+	@ar rcs lib/$@.a $^
+
+libfltk_png: $(PngObjs)
+	@echo [AR] $@
+	@ar rcs lib/$@.a $^
+
+libfltk_z: $(ZlibObjs)
+	@echo [AR] $@
+	@ar rcs lib/$@.a $^
+	
+clean:
+	rm -rf $(FltkObjs) $(FormsObjs) $(ImagesObjs) $(JpegObjs) $(PngObjs) $(ZlibObjs)

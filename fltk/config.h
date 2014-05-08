@@ -48,7 +48,7 @@
  * OpenGL, and FLTK will be smaller.
  */
 
-#define HAVE_GL 1
+#define HAVE_GL 0
 
 /*
  * HAVE_GL_GLU_H:
@@ -57,7 +57,7 @@
  * (many broken Mesa RPMs do not...)
  */
 
-#define HAVE_GL_GLU_H 1
+#define HAVE_GL_GLU_H 0
 
 /*
  * HAVE_GLXGETPROCADDRESSARB:
@@ -126,7 +126,8 @@
  *
  */
 
-/* #undef USE_X11 */
+#define USE_X11 1
+#undef WIN32 // force to use nanox/nxlib
 
 /*
  * HAVE_OVERLAY:

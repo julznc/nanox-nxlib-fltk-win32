@@ -29,6 +29,10 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#ifndef WIN32
+#define WIN32 1
+#endif
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 #  include <windows.h>
 #  include <direct.h>

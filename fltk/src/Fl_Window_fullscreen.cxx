@@ -26,10 +26,9 @@
 // the window full screen will lose the size of the border off the
 // bottom and right.
 
+#include <config.h>
 #include <FL/Fl.H>
 #include <FL/x.H>
-
-#include <config.h>
 
 #if FLTK_ABI_VERSION < 10301
 int Fl_Window::no_fullscreen_x = 0;

@@ -22,7 +22,7 @@
 */
 
 // Implementation of fl_color(i), fl_color(r,g,b).
-
+#include <config.h>
 #ifdef WIN32
 #  include "fl_color_win32.cxx"
 #elif defined(__APPLE__)

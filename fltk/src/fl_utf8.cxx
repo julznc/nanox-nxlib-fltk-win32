@@ -752,6 +752,8 @@ int fl_mkdir(const char* f, int mode)
 		wn = fl_utf8toUtf16(f, (unsigned) l, (unsigned short *)wbuf, wn); // Convert string
 		wbuf[wn] = 0;
 		return _wmkdir(wbuf);
+#elif 1
+	return mkdir(f);
 #else
 	return mkdir(f, mode);
 #endif

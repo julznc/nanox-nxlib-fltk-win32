@@ -62,7 +62,7 @@
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #  include "Xutf8.h"
-#  include <X11/Xlocale.h>
+//#  include <X11/Xlocale.h>
 #  include <X11/Xlib.h>
 #  include <locale.h>
 #  define xchar unsigned short

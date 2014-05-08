@@ -30,13 +30,12 @@
 // Probably should add fl_chord.
 
 // 3/10/98: created
-
+#include <config.h>
 #include <FL/fl_draw.H>
 #include <FL/x.H>
 #ifdef WIN32
 #  include <FL/math.h>
 #endif
-#include <config.h>
 
 void Fl_Graphics_Driver::arc(int x,int y,int w,int h,double a1,double a2) {
   if (w <= 0 || h <= 0) return;

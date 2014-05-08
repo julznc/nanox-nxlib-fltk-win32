@@ -30,6 +30,11 @@
 #include <errno.h>
 #include <sys/types.h>
 #include "flstring.h"
+
+#ifndef WIN32
+#define WIN32 1
+#endif
+
 #ifdef WIN32
 #  include <windows.h>
 #  include <shellapi.h>

@@ -371,7 +371,7 @@
 #  endif // DIRECTORY
 #else
 #  include <unistd.h>
-#  include <pwd.h>
+//#  include <pwd.h>
 #endif /* WIN32 */
 
 
@@ -1074,7 +1074,7 @@ Fl_File_Chooser::newdir()
     strlcpy(pathname, dir, sizeof(pathname));
 
   // Create the directory; ignore EEXIST errors...
-#if defined(WIN32) && ! defined (__CYGWIN__)
+#if 1//defined(WIN32) && ! defined (__CYGWIN__)
   if (mkdir(pathname))
 #else
   if (mkdir(pathname, 0777))

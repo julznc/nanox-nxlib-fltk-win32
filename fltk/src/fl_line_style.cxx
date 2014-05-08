@@ -20,7 +20,7 @@
   \file fl_line_style.cxx
   \brief Line style drawing utility hiding different platforms.
 */
-
+#include <config.h>
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 #include <FL/x.H>

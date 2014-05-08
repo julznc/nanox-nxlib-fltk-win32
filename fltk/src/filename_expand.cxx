@@ -25,6 +25,11 @@
 #include <FL/fl_utf8.h>
 #include <stdlib.h>
 #include "flstring.h"
+
+#ifndef WIN32
+#define WIN32 1
+#endif
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #else

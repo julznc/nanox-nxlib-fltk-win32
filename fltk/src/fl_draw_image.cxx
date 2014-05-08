@@ -25,7 +25,7 @@
 // change the origin and direction of the image data by messing with
 // the "delta" and "linedelta", making them negative, though this may
 // defeat some of the shortcuts in translating the image for X.
-
+#include <config.h>
 #ifdef WIN32
 #  include "fl_draw_image_win32.cxx"
 #elif defined(__APPLE__)

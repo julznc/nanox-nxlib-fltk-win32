@@ -16,10 +16,9 @@
 //     http://www.fltk.org/str.php
 //
 
-
+#include <config.h>
 #include <FL/Fl.H>
 #include <FL/x.H>
-#include <config.h>
 
 #define MAX_SCREENS 16
 

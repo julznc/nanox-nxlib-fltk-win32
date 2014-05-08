@@ -22,6 +22,7 @@
 /** \fn Fl_Bitmap::Fl_Bitmap(const unsigned char *array, int W, int H)
   The constructors create a new bitmap from the specified bitmap data.*/
 
+#include <config.h>
 #include <FL/Fl.H>
 #include <FL/x.H>
 #include <FL/fl_draw.H>
