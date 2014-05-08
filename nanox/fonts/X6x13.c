@@ -6964,7 +6964,7 @@ static MWIMAGEBITS _X6x13_bits[] = {
 };
 
 /* Character->glyph mapping. */
-static unsigned long _X6x13_offset[] = {
+static uint32_t _X6x13_offset[] = {
   0,	/* (0x00) */
   13,	/* (0x01) */
   26,	/* (0x02) */

@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	if(gc>0)
 		printf("GrNewGC() OK.\n");
 	
-	fid = GrCreateFontEx((GR_CHAR *)"./arial.ttf", 20, 10, NULL);
+	fid = GrCreateFontEx((GR_CHAR *)"arial", 20, 10, NULL);
 	if(fid>0)
 		printf("Font created.\n");
 	GrSetFontAttr(fid, GR_TFANTIALIAS, 0);

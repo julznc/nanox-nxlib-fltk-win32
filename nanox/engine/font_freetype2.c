@@ -66,7 +66,11 @@ void winfillrect(PSD psd, int x, int y, int w, int h);
 #define SIZES_CACHE_MAX		5			/* Sizes*/
 #define CACHE_SIZE			(512*1024)	/* Bytes - 512K*/
 #ifndef FREETYPE_FONT_DIR
+#ifdef WIN32
+#define FREETYPE_FONT_DIR "C:/Windows/Fonts"
+#else
 #define FREETYPE_FONT_DIR "fonts/truetype"		/* default truetype font directory*/
+#endif
 #endif
 
 /* Checking FreeType version numbers */
