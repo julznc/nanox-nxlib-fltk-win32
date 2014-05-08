@@ -15,6 +15,7 @@
 //
 //     http://www.fltk.org/str.php
 //
+#include <config.h>
 
 #ifdef WIN32
 //#  include "Fl_win32.cxx"
@@ -26,7 +27,6 @@
 /**** Define this if your keyboard lacks a backspace key... ****/
 /* #define BACKSPACE_HACK 1 */
 
-#  include <config.h>
 #  include <FL/Fl.H>
 #  include <FL/x.H>
 #  include <FL/Fl_Window.H>
@@ -39,8 +39,8 @@
 #  include "flstring.h"
 #  include <unistd.h>
 #  include <sys/time.h>
-#  include <X11/Xmd.h>
-#  include <X11/Xlocale.h>
+//#  include <X11/Xmd.h>
+//#  include <X11/Xlocale.h>
 #  include <X11/Xlib.h>
 #  include <X11/keysym.h>
 #define USE_XRANDR (HAVE_DLSYM && HAVE_DLFCN_H) // means attempt to dynamically load libXrandr.so
@@ -72,6 +72,10 @@ static pollfd *pollfds = 0;
 
 // The following #define is only needed for HP-UX 9.x and earlier:
 //#define select(a,b,c,d,e) select((a),(int *)(b),(int *)(c),(int *)(d),(e))
+
+#undef Status
+#include <winsock.h>
+#define Status int
 
 static fd_set fdsets[3];
 static int maxfd;

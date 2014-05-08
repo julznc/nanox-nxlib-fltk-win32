@@ -15,7 +15,7 @@
  */
 
 #define KEYSYM2UCS_INCLUDED
-
+#include <config.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 
 #include "../../FL/Xutf8.h"

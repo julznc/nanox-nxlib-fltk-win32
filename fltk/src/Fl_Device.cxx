@@ -15,7 +15,7 @@
 //
 //     http://www.fltk.org/str.php
 //
-
+#include <config.h>
 #include <FL/Fl.H>
 #include <FL/Fl_Device.H>
 #include <FL/Fl_Image.H>

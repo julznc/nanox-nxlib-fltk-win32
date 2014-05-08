@@ -17,7 +17,7 @@
 /*
  * Unicode to UTF-8 conversion functions.
  */
-
+#include <config.h>
 #if !defined(WIN32) && !defined(__APPLE__)
 
 #include "../../FL/Xutf8.h"

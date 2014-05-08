@@ -21,12 +21,12 @@
 // this and pretend that changing the cursor is a drawing function.
 // This avoids a field in the Fl_Window, and I suspect is more
 // portable to other systems.
-
+#include <config.h>
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
 #if !defined(WIN32) && !defined(__APPLE__)
-#  include <X11/cursorfont.h>
+//#  include <X11/cursorfont.h>
 #endif
 #include <FL/fl_draw.H>
 
