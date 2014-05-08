@@ -236,10 +236,10 @@ win32_getscreeninfo(PSD psd, PMWSCREENINFO psi)
 static void
 win32_update(PSD psd, MWCOORD x, MWCOORD y, MWCOORD width, MWCOORD height)
 {
-#if 0// full area update
+#if 1// full area update
 	SetDIBitsToDevice(dcBuffer, 0, 0, psd->xres, psd->yres, 0, 0, 0, psd->yres,
 			psd->addr, (BITMAPINFO*)&bmpInfo, DIB_RGB_COLORS);
-#else // faster (?)
+#else // fix me
 	unsigned char *addr = psd->addr + ((y * psd->xres * psd->bpp) >> 3);
 	
 	SetDIBitsToDevice(dcBuffer, x, y, psd->xres, psd->yres, x, y, y, psd->yres,
