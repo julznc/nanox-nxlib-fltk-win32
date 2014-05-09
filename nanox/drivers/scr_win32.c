@@ -233,16 +233,23 @@ win32_getscreeninfo(PSD psd, PMWSCREENINFO psi)
 	psi->fbdriver = FALSE;	/* not running fb driver, no direct map */
 }
 
+
 static void
 win32_update(PSD psd, MWCOORD x, MWCOORD y, MWCOORD width, MWCOORD height)
 {
-#if 1// full area update
+#if 0// full area update
 	SetDIBitsToDevice(dcBuffer, 0, 0, psd->xres, psd->yres, 0, 0, 0, psd->yres,
 			psd->addr, (BITMAPINFO*)&bmpInfo, DIB_RGB_COLORS);
-#else // fix me
-	unsigned char *addr = psd->addr + ((y * psd->xres * psd->bpp) >> 3);
+#else // specified height update (faster ?)
+	unsigned char *addr = psd->addr + (y * psd->pitch);
 	
-	SetDIBitsToDevice(dcBuffer, x, y, psd->xres, psd->yres, x, y, y, psd->yres,
+	if( width < 1 || height < 1 )
+		return;
+	
+	bmpInfo.bV4Height = -height;
+	bmpInfo.bV4SizeImage = height * psd->pitch;
+	
+	SetDIBitsToDevice(dcBuffer, 0, y, psd->xres, height, 0, 0, 0, height,
 			addr, (BITMAPINFO*)&bmpInfo, DIB_RGB_COLORS);
 #endif
 }
