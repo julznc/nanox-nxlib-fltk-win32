@@ -8,7 +8,8 @@ LIBS = \
 	$(NXFLTK_DIR)/fltk/lib/libfltk_forms.a \
 	$(NXFLTK_DIR)/nxlib/lib/libnx.a \
 	$(NXFLTK_DIR)/nanox/lib/libnanox.a \
-	$(NXFLTK_DIR)/freetype/objs/.libs/libfreetype.a
+	$(NXFLTK_DIR)/freetype/objs/.libs/libfreetype.a \
+	$(NXFLTK_DIR)/harfbuzz/lib/libharfbuzz.a
 	
 all:
 	g++ $(INCLUDES) -c main.cpp -o main.o

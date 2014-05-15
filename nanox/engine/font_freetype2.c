@@ -59,8 +59,15 @@ void winfillrect(PSD psd, int x, int y, int w, int h);
 #include FT_FREETYPE_H
 #include FT_TRIGONOMETRY_H
 #include FT_GLYPH_H
+#include FT_OUTLINE_H
 
-/* configurable defaults*/
+#if HAVE_HARFBUZZ_SUPPORT
+/* HarfBuzz 0.9.x */
+#include <hb.h>
+#include <hb-ft.h>
+#endif
+
+/* configurable defaults */
 #define FILL_BACKGROUND_ON_USEBG	1	/* fill background when usebg TRUE*/
 #define FACE_CACHE_MAX		3			/* Faces*/
 #define SIZES_CACHE_MAX		5			/* Sizes*/
@@ -201,6 +208,9 @@ typedef struct {
 	FT_CharMapRec cmapdesc;
 #endif
 #endif
+#if HAVE_HARFBUZZ_SUPPORT
+	hb_script_t hb_script;
+#endif
 #else
 	FT_Face face;
 #endif
@@ -324,7 +334,7 @@ freetype2_face_requester(FTC_FaceID face_id, FT_Library library,
 	if (fontdata->isBuffer) {
 		unsigned char * buffer = fontdata->data.buffer.data;
 		unsigned length = fontdata->data.buffer.length;
-		/* DPRINTF("Font magic = '%c%c%c%c', len = %u @ freetype2_face_requester\n", 
+		/* DPRINTF("Font magic = '%c%c%c%c', len = %u @ freetype2_face_requester\n",
 		   (char)buffer[0], (char)buffer[1], (char)buffer[2], (char)buffer[3], length); */
 		assert(buffer);
 		rr = FT_New_Memory_Face(library, buffer, length, 0, aface);
@@ -340,7 +350,7 @@ freetype2_face_requester(FTC_FaceID face_id, FT_Library library,
 				FT_Set_Charmap(*aface, (*aface)->charmaps[1]);
 		}
 	}
-	
+
 	return rr;
 }
 #endif
@@ -366,6 +376,30 @@ freetype2_face_requester(FTC_FaceID face_id, FT_Library library,
 #else
 #define LOOKUP_CHAR(pf_,face_,ch_) (FT_Get_Char_Index((face_), (ch_)))
 #endif
+
+#if HAVE_HARFBUZZ_SUPPORT
+static struct {
+    const char *name;
+    hb_script_t script;
+} fontname_to_hb_script[] = { // to do: update this table!
+    { "Amiri", HB_SCRIPT_ARABIC },
+    { "Traditional Arabic", HB_SCRIPT_ARABIC },
+    { "AR PL New Sung", HB_SCRIPT_HAN },
+    { "Tunga", HB_SCRIPT_KANNADA },
+    { 0, HB_SCRIPT_UNKNOWN },
+};
+
+static hb_script_t get_hb_script(FT_Face ftf) {
+    int i;
+    if(!ftf) return HB_SCRIPT_INVALID;
+    DPRINTF("font family name = %s\n", ftf->family_name);
+    for(i=0; fontname_to_hb_script[i].name!=0; i++){
+        if( strncmp(ftf->family_name, fontname_to_hb_script[i].name, sizeof(fontname_to_hb_script[i].name)) == 0 )
+            return fontname_to_hb_script[i].script;
+    }
+    return HB_SCRIPT_UNKNOWN;
+}
+#endif // HAVE_HARFBUZZ_SUPPORT
 
 /**
  * Initialize the FreeType 2 driver.  If successful, this is a one-time
@@ -571,7 +605,7 @@ freetype2_createfontfrombuffer(const unsigned char *buffer, unsigned size,
 		faceid->data.buffer.data = buffercopy;
 		faceid->refcount = 1;
 
-		/*DPRINTF("Font magic = '%c%c%c%c', len = %u @ freetype2_createfontfrombuffer\n", 
+		/*DPRINTF("Font magic = '%c%c%c%c', len = %u @ freetype2_createfontfrombuffer\n",
 		  (char)buffercopy[0], (char)buffercopy[1], (char)buffercopy[2], (char)buffercopy[3], size); */
 
 		pf = freetype2_createfont_internal(faceid, NULL, height, width);
@@ -698,6 +732,9 @@ freetype2_createfont_internal(freetype2_fontdata * faceid, char *filename, MWCOO
 		free(pf);
 		return NULL;
 	}
+#if HAVE_HARFBUZZ_SUPPORT
+	pf->hb_script = get_hb_script(size->face);
+#endif
 #endif
 
 	return pf;
@@ -839,7 +876,7 @@ freetype2_setfontsize(PMWFONT pfont, MWCOORD height, MWCOORD width)
 	/* We want real pixel sizes ... not points ... */
 	FT_Set_Pixel_Sizes(pf->face, pixel_width, pixel_height);
 #endif
-	
+
 	return oldsize;
 }
 
@@ -948,7 +985,7 @@ freetype2_get_glyph_size(PMWFREETYPE2FONT pf, FT_Face face, int glyph_index,
 
 	assert (pf);
 	assert (face);
-	
+
 #if HAVE_FREETYPE_2_CACHE
 	if (CAN_USE_FT2_CACHE(pf))
 	{
@@ -957,9 +994,9 @@ freetype2_get_glyph_size(PMWFREETYPE2FONT pf, FT_Face face, int glyph_index,
 		error = FTC_SBitCache_Lookup(freetype2_cache_sbit, &pf->imagedesc, glyph_index, &sbit, NULL);
 		if (error)
 			return error;
-		
+
 		/*DPRINTF("sbit->top = %d, sbit->height = %d\n", sbit->top, sbit->height);*/
-		
+
 		if (padvance)
 			*padvance = sbit->xadvance;
 		if (pascent)
@@ -981,20 +1018,20 @@ freetype2_get_glyph_size(PMWFREETYPE2FONT pf, FT_Face face, int glyph_index,
 		{
 			FT_Glyph glyph;
 			FT_BBox bbox;
-			
+
 			error = FT_Get_Glyph(face->glyph, &glyph);
 			if (error)
 				return error;
-			
+
 			FT_Glyph_Get_CBox(glyph, ft_glyph_bbox_pixels, &bbox);
 			FT_Done_Glyph(glyph);
-			
+
 			if (pascent)
 				*pascent = bbox.yMax;
 			if (pdescent)
 				*pdescent = -bbox.yMin;
 		}
-		
+
 		return 0;
 	}
 }
@@ -1234,6 +1271,95 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 	else
 		pos.y = 0;
 
+#if HAVE_HARFBUZZ_SUPPORT
+    if( pf->hb_script != HB_SCRIPT_UNKNOWN ) {
+
+    	/* non-cache drawtext routine*/
+		FT_BitmapGlyph bitmapglyph;
+		FT_Bitmap *bitmap;
+		FT_Render_Mode render_mode = (parms.data_format & MWIF_MONO)?
+			FT_RENDER_MODE_MONO: FT_RENDER_MODE_NORMAL;
+
+        hb_font_t *hb_ft_font = hb_ft_font_create(face, NULL);
+        hb_buffer_t *hb_buf = hb_buffer_create();
+
+        /* Layout the text */
+        hb_buffer_add_utf16(hb_buf, str, -1, 0, cc);
+    #if 1
+        hb_buffer_guess_segment_properties (hb_buf);
+    #else
+        hb_buffer_set_script(hb_buf, pf->hb_script);
+        hb_buffer_set_direction(hb_buf, HB_DIRECTION_LTR);
+        if(pf->hb_script==HB_SCRIPT_ARABIC)
+           hb_buffer_set_direction(hb_buf, HB_DIRECTION_RTL);
+    #endif
+        hb_shape(hb_ft_font, hb_buf, NULL, 0);
+
+        unsigned int         glyph_count, cnt;
+        hb_glyph_info_t     *glyph_info   = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
+        hb_glyph_position_t *glyph_pos    = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
+
+        pos.x = 0;
+        for (cnt= 0; cnt < glyph_count; ++cnt) {
+            error = FT_Load_Glyph(face, glyph_info[cnt].codepoint, FT_LOAD_DEFAULT);
+
+			if (error)
+				continue;
+
+            error = FT_Get_Glyph(face->glyph, &glyph);
+			if (error)
+				continue;
+    #if 1
+			/* translate the glyph image*/
+			FT_Glyph_Transform(glyph, 0, &pos);
+
+			//DPRINTF("freetype2_drawtext(): glyph->advance.x=%d, >>16=%d\n",
+			//(int)glyph->advance.x, (int)glyph->advance.x>>16);
+
+			pos.x += (glyph->advance.x >> 10) & ~63;
+			pos.y += (glyph->advance.y >> 10) & ~63;
+
+			/* rotate the glyph image*/
+			FT_Glyph_Transform(glyph, &pf->matrix, 0);
+    #else
+            pos.x += glyph_pos[cnt].x_advance;
+            pos.y += glyph_pos[cnt].y_advance;
+    #endif
+			/* convert glyph to bitmap image*/
+			error = FT_Glyph_To_Bitmap(&glyph, render_mode,
+						0,	// no additional translation
+						1);	// do not destroy copy in "image"
+
+			if (!error) {
+				bitmapglyph = (FT_BitmapGlyph) glyph;
+				bitmap = &(bitmapglyph->bitmap);
+
+				parms.dstx = ax + bitmapglyph->left;
+				parms.dsty = ay - bitmapglyph->top;
+				parms.width = bitmap->width;
+				parms.height = bitmap->rows;
+				parms.src_pitch = bitmap->pitch;
+				parms.data = bitmap->buffer;
+				//DPRINTF("freetype2_draw_bitmap(ax=%d, ay=%d, gl->l=%d, gl->t=%d)\n",
+				// ax, ay, bitmapglyph->left, bitmapglyph->top);
+
+				if (parms.width > 0 && parms.height > 0)
+					GdConversionBlit(psd, &parms);
+
+				FT_Done_Glyph(glyph);
+			}
+
+        }
+
+        hb_buffer_destroy(hb_buf);
+        hb_font_destroy(hb_ft_font);
+
+        return;
+    }
+
+
+#endif // HAVE_HARFBUZZ_SUPPORT
+
 	/* Use slow routine for rotated text or cache not supported*/
 	if ((pf->fontrotation != 0)
 #if !HAVE_FREETYPE_2_CACHE
@@ -1262,7 +1388,7 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 			MWCOORD fnt_h, fnt_w, fnt_b;
 #if STANDALONE
 			/* fill to gr_background color*/
-			MWPIXELVAL gr_save = winsetfgcolor(psd, gr_background);	
+			MWPIXELVAL gr_save = winsetfgcolor(psd, gr_background);
 #else
 			MWPIXELVAL gr_save = gr_background;
 			gr_foreground = gr_background;
@@ -1361,7 +1487,7 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 			MWCOORD fnt_h, fnt_w, fnt_b;
 #if STANDALONE
 			/* fill to gr_background color*/
-			MWPIXELVAL gr_save = winsetfgcolor(psd, gr_background);	
+			MWPIXELVAL gr_save = winsetfgcolor(psd, gr_background);
 #else
 			MWPIXELVAL gr_save = gr_background;
 			gr_foreground = gr_background;

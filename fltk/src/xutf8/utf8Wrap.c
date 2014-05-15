@@ -29,7 +29,9 @@
 #include <stdio.h>
 
 /* External auto generated functions : */
-#include "ucs2fontmap.c"
+//#include "ucs2fontmap.c"
+#include "ucs2fontmap.c.mini" // default to iso10646-1"
+
 /*
  * extern int ucs2fontmap(char *s, unsigned int ucs, int enc);
  * extern int encoding_number(const char *enc);
@@ -505,9 +507,12 @@ XUtf8DrawString(Display 	*display,
     ulen = XFastConvertUtf8ToUcs((unsigned char*)string, num_bytes, &ucs);
 
     if (ulen < 1) ulen = 1;
-
+  #if 0
     no_spc = XUtf8IsNonSpacing(ucs);
     if (no_spc) ucs = no_spc;
+  #else // let libharfbuzz handle spacing
+    no_spc = 0;
+  #endif
 
     /*
      * find the first encoding which can be used to

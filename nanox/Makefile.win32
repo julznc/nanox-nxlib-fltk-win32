@@ -1,11 +1,13 @@
 
 FT2_DIR = ../freetype
+HB_DIR = ../harfbuzz
 
-INCLUDES = -I./include -I$(FT2_DIR)/include
+INCLUDES = -I./include -I$(FT2_DIR)/include -I$(HB_DIR)/src
 
 CFLAGS = -DNANOWM=1 -DNONETWORK=1 -DMW_NOSIGNALS=1 -DHAVE_FILEIO=1 \
 		-DMW_FEATURE_IMAGES=1 -DHAVE_BMP_SUPPORT=1 -DHAVE_XPM_SUPPORT=1 \
-		-DHAVE_PCF_SUPPORT=1 -DHAVE_FREETYPE_2_SUPPORT=1 -DHAVE_FNT_SUPPORT=1 \
+		-DHAVE_PCF_SUPPORT=1 -DHAVE_FNT_SUPPORT=1 \
+		-DHAVE_FREETYPE_2_SUPPORT=1 -DHAVE_HARFBUZZ_SUPPORT=1 \
 		-DNOSTDPAL2 -DNOSTDPAL4 -DNOSTDPAL8
 
 NanoxObjs = \
@@ -78,7 +80,7 @@ DriversObjs = \
 
 FontsObjs = fonts/X6x13.o \
 	fonts/winFreeSansSerif11x13.o
-	
+
 OBJS = $(NanoxObjs) $(EngineObjs) $(DriversObjs) $(FontsObjs)
 
 %.o : %.c
