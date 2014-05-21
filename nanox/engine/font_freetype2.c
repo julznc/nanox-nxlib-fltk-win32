@@ -73,11 +73,7 @@ void winfillrect(PSD psd, int x, int y, int w, int h);
 #define SIZES_CACHE_MAX		5			/* Sizes*/
 #define CACHE_SIZE			(512*1024)	/* Bytes - 512K*/
 #ifndef FREETYPE_FONT_DIR
-#ifdef WIN32
-#define FREETYPE_FONT_DIR "C:/Windows/Fonts"
-#else
-#define FREETYPE_FONT_DIR "fonts/truetype"		/* default truetype font directory*/
-#endif
+#define FREETYPE_FONT_DIR "fonts"		/* default truetype font directory*/
 #endif
 
 /* Checking FreeType version numbers */
@@ -209,7 +205,9 @@ typedef struct {
 #endif
 #endif
 #if HAVE_HARFBUZZ_SUPPORT
+	hb_font_t *hb_font;
 	hb_script_t hb_script;
+	int use_harfbuzz;
 #endif
 #else
 	FT_Face face;
@@ -378,6 +376,7 @@ freetype2_face_requester(FTC_FaceID face_id, FT_Library library,
 #endif
 
 #if HAVE_HARFBUZZ_SUPPORT
+static hb_buffer_t *HB_buff;
 static struct {
     const char *name;
     hb_script_t script;
@@ -462,6 +461,9 @@ freetype2_init(PSD psd)
 		return 0;
 	}
 #endif
+#if HAVE_HARFBUZZ_SUPPORT
+	HB_buff = hb_buffer_create();
+#endif // HAVE_HARFBUZZ_SUPPORT
 #endif
 
 	return 1;
@@ -733,7 +735,10 @@ freetype2_createfont_internal(freetype2_fontdata * faceid, char *filename, MWCOO
 		return NULL;
 	}
 #if HAVE_HARFBUZZ_SUPPORT
+	pf->hb_font = hb_ft_font_create(size->face, NULL);
 	pf->hb_script = get_hb_script(size->face);
+	// to do: check if hb buffer is valid
+	pf->use_harfbuzz = (pf->hb_script!=HB_SCRIPT_INVALID && pf->hb_script!=HB_SCRIPT_UNKNOWN)? 1:0;
 #endif
 #endif
 
@@ -1193,6 +1198,12 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 	int last_glyph_code = 0;	/* Used for kerning */
 	int drawantialias;
 	MWBLITPARMS parms;
+#if HAVE_HARFBUZZ_SUPPORT
+	unsigned int glyph_count;
+	hb_glyph_info_t *glyph_info;
+	hb_glyph_position_t *glyph_pos;
+#endif // HAVE_HARFBUZZ_SUPPORT
+
 
 	assert(pf);
 	assert(text);
@@ -1272,92 +1283,27 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 		pos.y = 0;
 
 #if HAVE_HARFBUZZ_SUPPORT
-    if( pf->hb_script != HB_SCRIPT_UNKNOWN ) {
+	if(pf->use_harfbuzz) {
+		/* clean up the buffer */
+		hb_buffer_clear_contents(HB_buff);
+		/* layout the text */
+		hb_buffer_add_utf16(HB_buff, str, -1, 0, cc);
 
-    	/* non-cache drawtext routine*/
-		FT_BitmapGlyph bitmapglyph;
-		FT_Bitmap *bitmap;
-		FT_Render_Mode render_mode = (parms.data_format & MWIF_MONO)?
-			FT_RENDER_MODE_MONO: FT_RENDER_MODE_NORMAL;
+	#if 1
+		hb_buffer_guess_segment_properties (HB_buff);
+	#else
+		hb_buffer_set_script(HB_buff, pf->hb_script);
+		hb_buffer_set_direction(HB_buff, HB_DIRECTION_LTR);
+		if(pf->hb_script==HB_SCRIPT_ARABIC)
+			hb_buffer_set_direction(HB_buff, HB_DIRECTION_RTL);
+	#endif
+		hb_shape(pf->hb_font, HB_buff, NULL, 0);
 
-        hb_font_t *hb_ft_font = hb_ft_font_create(face, NULL);
-        hb_buffer_t *hb_buf = hb_buffer_create();
+		glyph_info = hb_buffer_get_glyph_infos(HB_buff, &glyph_count);
+		glyph_pos = hb_buffer_get_glyph_positions(HB_buff, &glyph_count);
 
-        /* Layout the text */
-        hb_buffer_add_utf16(hb_buf, str, -1, 0, cc);
-    #if 1
-        hb_buffer_guess_segment_properties (hb_buf);
-    #else
-        hb_buffer_set_script(hb_buf, pf->hb_script);
-        hb_buffer_set_direction(hb_buf, HB_DIRECTION_LTR);
-        if(pf->hb_script==HB_SCRIPT_ARABIC)
-           hb_buffer_set_direction(hb_buf, HB_DIRECTION_RTL);
-    #endif
-        hb_shape(hb_ft_font, hb_buf, NULL, 0);
-
-        unsigned int         glyph_count, cnt;
-        hb_glyph_info_t     *glyph_info   = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
-        hb_glyph_position_t *glyph_pos    = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
-
-        pos.x = 0;
-        for (cnt= 0; cnt < glyph_count; ++cnt) {
-            error = FT_Load_Glyph(face, glyph_info[cnt].codepoint, FT_LOAD_DEFAULT);
-
-			if (error)
-				continue;
-
-            error = FT_Get_Glyph(face->glyph, &glyph);
-			if (error)
-				continue;
-    #if 1
-			/* translate the glyph image*/
-			FT_Glyph_Transform(glyph, 0, &pos);
-
-			//DPRINTF("freetype2_drawtext(): glyph->advance.x=%d, >>16=%d\n",
-			//(int)glyph->advance.x, (int)glyph->advance.x>>16);
-
-			pos.x += (glyph->advance.x >> 10) & ~63;
-			pos.y += (glyph->advance.y >> 10) & ~63;
-
-			/* rotate the glyph image*/
-			FT_Glyph_Transform(glyph, &pf->matrix, 0);
-    #else
-            pos.x += glyph_pos[cnt].x_advance;
-            pos.y += glyph_pos[cnt].y_advance;
-    #endif
-			/* convert glyph to bitmap image*/
-			error = FT_Glyph_To_Bitmap(&glyph, render_mode,
-						0,	// no additional translation
-						1);	// do not destroy copy in "image"
-
-			if (!error) {
-				bitmapglyph = (FT_BitmapGlyph) glyph;
-				bitmap = &(bitmapglyph->bitmap);
-
-				parms.dstx = ax + bitmapglyph->left;
-				parms.dsty = ay - bitmapglyph->top;
-				parms.width = bitmap->width;
-				parms.height = bitmap->rows;
-				parms.src_pitch = bitmap->pitch;
-				parms.data = bitmap->buffer;
-				//DPRINTF("freetype2_draw_bitmap(ax=%d, ay=%d, gl->l=%d, gl->t=%d)\n",
-				// ax, ay, bitmapglyph->left, bitmapglyph->top);
-
-				if (parms.width > 0 && parms.height > 0)
-					GdConversionBlit(psd, &parms);
-
-				FT_Done_Glyph(glyph);
-			}
-
-        }
-
-        hb_buffer_destroy(hb_buf);
-        hb_font_destroy(hb_ft_font);
-
-        return;
-    }
-
-
+		cc = glyph_count;
+	}
 #endif // HAVE_HARFBUZZ_SUPPORT
 
 	/* Use slow routine for rotated text or cache not supported*/
@@ -1407,6 +1353,11 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 
 		pos.x = 0;
 		for (i = 0; i < cc; i++) {
+#if HAVE_HARFBUZZ_SUPPORT
+			if(pf->use_harfbuzz)
+				curchar = glyph_info[i].codepoint;
+			else
+#endif // HAVE_HARFBUZZ_SUPPORT
 			curchar = LOOKUP_CHAR(pf, face, str[i]);
 
 			if (use_kerning && last_glyph_code && curchar) {
@@ -1504,6 +1455,11 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 #endif /* FILL_BACKGROUND_ON_USEBG*/
 
 		for (i = 0; i < cc; i++) {
+#if HAVE_HARFBUZZ_SUPPORT
+			if(pf->use_harfbuzz)
+				curchar = glyph_info[i].codepoint;
+			else
+#endif // HAVE_HARFBUZZ_SUPPORT
 			curchar = LOOKUP_CHAR(pf, face, str[i]);
 
 			if (use_kerning && last_glyph_code && curchar) {

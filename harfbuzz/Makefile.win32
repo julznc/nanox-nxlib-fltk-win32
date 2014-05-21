@@ -10,19 +10,19 @@ OBJS = \
 	src/hb-buffer-serialize.o \
 	src/hb-buffer.o \
 	src/hb-common.o \
-	src/hb-fallback-shape.o \
 	src/hb-face.o \
 	src/hb-font.o \
 	src/hb-ft.o \
-	src/hb-ot-tag.o \
 	src/hb-set.o \
 	src/hb-shape.o \
 	src/hb-shape-plan.o \
 	src/hb-shaper.o \
 	src/hb-unicode.o \
 	src/hb-warning.o \
+	src/hb-ot-font.o \
 	src/hb-ot-layout.o \
 	src/hb-ot-map.o \
+	src/hb-ot-tag.o \
 	src/hb-ot-shape.o \
 	src/hb-ot-shape-complex-arabic.o \
 	src/hb-ot-shape-complex-default.o \
@@ -36,6 +36,7 @@ OBJS = \
 	src/hb-ot-shape-complex-tibetan.o \
 	src/hb-ot-shape-normalize.o \
 	src/hb-ot-shape-fallback.o \
+	src/hb-fallback-shape.o \
 	src/hb-ucdn.o \
 	src/hb-ucdn/ucdn.o
 
