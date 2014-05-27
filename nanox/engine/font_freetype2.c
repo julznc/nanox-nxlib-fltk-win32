@@ -69,9 +69,9 @@ void winfillrect(PSD psd, int x, int y, int w, int h);
 
 /* configurable defaults */
 #define FILL_BACKGROUND_ON_USEBG	1	/* fill background when usebg TRUE*/
-#define FACE_CACHE_MAX		3			/* Faces*/
+#define FACE_CACHE_MAX		16			/* Faces*/
 #define SIZES_CACHE_MAX		5			/* Sizes*/
-#define CACHE_SIZE			(512*1024)	/* Bytes - 512K*/
+#define CACHE_SIZE		(2*1024*1024)	/* Bytes - 2M*/
 #ifndef FREETYPE_FONT_DIR
 #define FREETYPE_FONT_DIR "fonts"		/* default truetype font directory*/
 #endif
@@ -376,7 +376,7 @@ freetype2_face_requester(FTC_FaceID face_id, FT_Library library,
 #endif
 
 #if HAVE_HARFBUZZ_SUPPORT
-static hb_buffer_t *HB_buff;
+static hb_buffer_t *HB_buff = NULL;
 static struct {
     const char *name;
     hb_script_t script;
@@ -737,8 +737,8 @@ freetype2_createfont_internal(freetype2_fontdata * faceid, char *filename, MWCOO
 #if HAVE_HARFBUZZ_SUPPORT
 	pf->hb_font = hb_ft_font_create(size->face, NULL);
 	pf->hb_script = get_hb_script(size->face);
-	// to do: check if hb buffer is valid
-	pf->use_harfbuzz = (pf->hb_script!=HB_SCRIPT_INVALID && pf->hb_script!=HB_SCRIPT_UNKNOWN)? 1:0;
+	pf->use_harfbuzz = (HB_buff && HB_buff!=hb_buffer_get_empty() \
+						&& pf->hb_script!=HB_SCRIPT_INVALID && pf->hb_script!=HB_SCRIPT_UNKNOWN)? 1:0;
 #endif
 #endif
 
@@ -1199,9 +1199,7 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 	int drawantialias;
 	MWBLITPARMS parms;
 #if HAVE_HARFBUZZ_SUPPORT
-	unsigned int glyph_count;
-	hb_glyph_info_t *glyph_info;
-	hb_glyph_position_t *glyph_pos;
+	hb_glyph_info_t *glyph_info = NULL;
 #endif // HAVE_HARFBUZZ_SUPPORT
 
 
@@ -1299,10 +1297,8 @@ freetype2_drawtext(PMWFONT pfont, PSD psd, MWCOORD ax, MWCOORD ay,
 	#endif
 		hb_shape(pf->hb_font, HB_buff, NULL, 0);
 
-		glyph_info = hb_buffer_get_glyph_infos(HB_buff, &glyph_count);
-		glyph_pos = hb_buffer_get_glyph_positions(HB_buff, &glyph_count);
-
-		cc = glyph_count;
+		glyph_info = hb_buffer_get_glyph_infos(HB_buff, NULL);
+		cc = hb_buffer_get_length(HB_buff);
 	}
 #endif // HAVE_HARFBUZZ_SUPPORT
 
