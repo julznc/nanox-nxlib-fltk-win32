@@ -1539,6 +1539,10 @@ freetype2_gettextsize_rotated(PMWFREETYPE2FONT pf, const void *text, int cc,
 
 	FT_BBox bbox;
 	FT_BBox glyph_bbox;
+	
+#if HAVE_HARFBUZZ_SUPPORT
+	hb_glyph_info_t *glyph_info = NULL;
+#endif
 
 #if HAVE_FREETYPE_2_CACHE
 #if HAVE_FREETYPE_VERSION_AFTER_OR_EQUAL(2,3,9)
@@ -1579,8 +1583,28 @@ freetype2_gettextsize_rotated(PMWFREETYPE2FONT pf, const void *text, int cc,
 	bbox.yMax = 0;
 	pos.x = 0;
 	pos.y = 0;
+	
+#if HAVE_HARFBUZZ_SUPPORT
+	if(pf->use_harfbuzz) {
+		/* clean up the buffer */
+		hb_buffer_clear_contents(HB_buff);
+		/* layout the text */
+		hb_buffer_add_utf16(HB_buff, str, -1, 0, cc);
+
+		hb_buffer_guess_segment_properties (HB_buff);
+		hb_shape(pf->hb_font, HB_buff, NULL, 0);
+
+		glyph_info = hb_buffer_get_glyph_infos(HB_buff, NULL);
+		cc = hb_buffer_get_length(HB_buff);
+	}
+#endif
 
 	for (i = 0; i < cc; i++) {
+#if HAVE_HARFBUZZ_SUPPORT
+		if(pf->use_harfbuzz)
+			curchar = glyph_info[i].codepoint;
+		else
+#endif
 		curchar = LOOKUP_CHAR(pf, face, str[i]);
 
 		if (use_kerning && last_glyph_code && curchar) {
@@ -1680,6 +1704,9 @@ freetype2_gettextsize_fast(PMWFREETYPE2FONT pf, const void *text, int char_count
 	int use_kerning;
 	int cur_glyph_code;
 	int last_glyph_code = 0;	/* Used for kerning */
+#if HAVE_HARFBUZZ_SUPPORT
+	hb_glyph_info_t *glyph_info = NULL;
+#endif
 
 #if HAVE_FREETYPE_2_CACHE
 #if HAVE_FREETYPE_VERSION_AFTER_OR_EQUAL(2,3,9)
@@ -1717,8 +1744,28 @@ freetype2_gettextsize_fast(PMWFREETYPE2FONT pf, const void *text, int char_count
 	total_advance = 0;
 	max_ascent  = 0;
 	max_descent = 0;
+	
+#if HAVE_HARFBUZZ_SUPPORT
+	if(pf->use_harfbuzz) {
+		/* clean up the buffer */
+		hb_buffer_clear_contents(HB_buff);
+		/* layout the text */
+		hb_buffer_add_utf16(HB_buff, str, -1, 0, char_count);
+
+		hb_buffer_guess_segment_properties (HB_buff);
+		hb_shape(pf->hb_font, HB_buff, NULL, 0);
+
+		glyph_info = hb_buffer_get_glyph_infos(HB_buff, NULL);
+		char_count = hb_buffer_get_length(HB_buff);
+	}
+#endif
 
 	for (char_index = 0; char_index < char_count; char_index++) {
+#if HAVE_HARFBUZZ_SUPPORT
+		if(pf->use_harfbuzz)
+			cur_glyph_code = glyph_info[char_index].codepoint;
+		else
+#endif
 		cur_glyph_code = LOOKUP_CHAR(pf, face, str[char_index]);
 
 		if (use_kerning && last_glyph_code && cur_glyph_code) {
