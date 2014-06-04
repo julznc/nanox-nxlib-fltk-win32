@@ -15,6 +15,7 @@ FltkObjs = \
 	src/Fl_Browser_load.o \
 	src/Fl_Box.o \
 	src/Fl_Button.o \
+	src/Fl_Calendar.o \
 	src/Fl_Chart.o \
 	src/Fl_Check_Browser.o \
 	src/Fl_Check_Button.o \
@@ -100,6 +101,7 @@ FltkObjs = \
 	src/Fl_own_colormap.o \
 	src/Fl_visual.o \
 	src/Fl_x.o \
+	src/FDate.o \
 	src/filename_absolute.o \
 	src/filename_expand.o \
 	src/filename_ext.o \
