@@ -29,11 +29,11 @@
 #include <FL/Fl_Shared_Image.H>
 #include <FL/fl_utf8.h>
 #include <FL/Fl.H>
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
 
+#define HAVE_LIBJPEG 1
 
 // Some releases of the Cygwin JPEG libraries don't have a correctly
 // updated header file for the INT32 data type; the following define

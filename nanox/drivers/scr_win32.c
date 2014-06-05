@@ -17,7 +17,7 @@
 #include "genmem.h"
 #include "genfont.h"
 
-#define APP_NAME "Nano-X Window"
+#define DEFAULT_APP_NAME "Nano-X Window"
 
 /* default screen size */
 #define DEFAULT_SCREEN_WIDTH	240
@@ -112,9 +112,11 @@ win32_open(PSD psd)
 	RECT rect;
 	PSUBDRIVER subdriver;
 	WNDCLASSEX wincl;
+	const char *app_name;
 
 	scr_width = getenv("NXSCREEN_WIDTH")? atoi(getenv("NXSCREEN_WIDTH")) : DEFAULT_SCREEN_WIDTH;
 	scr_height = getenv("NXSCREEN_HEIGHT")? atoi(getenv("NXSCREEN_HEIGHT")) : DEFAULT_SCREEN_HEIGHT;
+	app_name = getenv("NXSCREEN_TITLE")? getenv("NXSCREEN_TITLE") : DEFAULT_APP_NAME;
 	
 	if( 60 > scr_width || scr_width > 1920 )
 		scr_width = DEFAULT_SCREEN_WIDTH;
@@ -158,7 +160,7 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 
 	/* The Window structure */
 	wincl.hInstance = hInstance;
-	wincl.lpszClassName = APP_NAME;
+	wincl.lpszClassName = app_name;
 	wincl.lpfnWndProc = (WNDPROC)myWindowProc;
 	wincl.style = CS_OWNDC;
 	wincl.cbSize = sizeof (WNDCLASSEX);
@@ -176,7 +178,7 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 		return NULL;
 	}
 	
-	winRootWindow = CreateWindowEx ( 0, APP_NAME, APP_NAME,
+	winRootWindow = CreateWindowEx ( 0, app_name, app_name,
 		WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
 		scr_width, scr_height, HWND_DESKTOP, NULL, hInstance, NULL );
 	
