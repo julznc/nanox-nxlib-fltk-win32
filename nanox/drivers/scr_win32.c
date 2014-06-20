@@ -66,7 +66,7 @@ myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONDOWN:
-	case WM_LBUTTONUP: 
+	case WM_LBUTTONUP:
 	case WM_LBUTTONDBLCLK:
 	case WM_MBUTTONDOWN:
 	case WM_MBUTTONUP:
@@ -93,7 +93,7 @@ myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		SelectObject(dcBuffer, dcOldBitmap);
-		DeleteDC(dcBuffer);	
+		DeleteDC(dcBuffer);
 		DeleteObject(dcBitmap);
 		winRootWindow = NULL;
 		CloseHandle(dummyEvent);
@@ -103,7 +103,7 @@ myWindowProc(HWND hWnd,	UINT Msg, WPARAM wParam, LPARAM lParam)
 	}
 	return 0;
 }
- 
+
 /* called from keyboard/mouse/screen */
 static PSD
 win32_open(PSD psd)
@@ -117,13 +117,13 @@ win32_open(PSD psd)
 	scr_width = getenv("NXSCREEN_WIDTH")? atoi(getenv("NXSCREEN_WIDTH")) : DEFAULT_SCREEN_WIDTH;
 	scr_height = getenv("NXSCREEN_HEIGHT")? atoi(getenv("NXSCREEN_HEIGHT")) : DEFAULT_SCREEN_HEIGHT;
 	app_name = getenv("NXSCREEN_TITLE")? getenv("NXSCREEN_TITLE") : DEFAULT_APP_NAME;
-	
+
 	if( 60 > scr_width || scr_width > 1920 )
 		scr_width = DEFAULT_SCREEN_WIDTH;
-		
+
 	if( 80 > scr_height || scr_height > 1080 )
 		scr_height = DEFAULT_SCREEN_HEIGHT;
-	
+
 	psd->xres = psd->xvirtres = scr_width;
 	psd->yres = psd->yvirtres = scr_height;
 	psd->planes = 1;
@@ -136,7 +136,7 @@ win32_open(PSD psd)
 	psd->bpp = 16;
 #else
 #error "No support bpp < 16"
-#endif 
+#endif
 	/* set standard data format from bpp and pixtype*/
 	psd->data_format = set_data_format(psd);
 
@@ -177,16 +177,20 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 		free(psd->addr);
 		return NULL;
 	}
-	
+
+	rect.left = 0; rect.right = scr_width;
+	rect.top = 0; rect.bottom = scr_height;
+	AdjustWindowRect(&rect, WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, FALSE);
+
 	winRootWindow = CreateWindowEx ( 0, app_name, app_name,
 		WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
-		scr_width, scr_height, HWND_DESKTOP, NULL, hInstance, NULL );
-	
+		rect.right-rect.left, rect.bottom-rect.top, HWND_DESKTOP, NULL, hInstance, NULL );
+
 	if (winRootWindow) {
 		HDC dc = GetDC(winRootWindow);
 
 		GetClientRect(winRootWindow, &rect);
-		dcBitmap = CreateCompatibleBitmap(dc, rect.right-rect.left,rect.bottom-rect.top);   
+		dcBitmap = CreateCompatibleBitmap(dc, rect.right-rect.left,rect.bottom-rect.top);
 		dcBuffer = CreateCompatibleDC(dc);
 		dcOldBitmap = SelectObject(dcBuffer, dcBitmap);
 		ReleaseDC(winRootWindow, dc);
@@ -194,7 +198,7 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 		ShowWindow(winRootWindow, SW_SHOWNORMAL);//SW_SHOWDEFAULT);
 		UpdateWindow(winRootWindow);
 	}
-		
+
 	memset(&bmpInfo, 0, sizeof(bmpInfo));
 	bmpInfo.bV4Size = sizeof(bmpInfo);
 	bmpInfo.bV4Width = psd->xres;
@@ -202,7 +206,7 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 	bmpInfo.bV4Planes = 1;
 	bmpInfo.bV4BitCount = psd->bpp;
 	bmpInfo.bV4SizeImage = psd->size;
-        
+
 	bmpInfo.bV4AlphaMask = 0xff000000;
 	bmpInfo.bV4RedMask  = 0xff0000;
 	bmpInfo.bV4GreenMask= 0x00ff00;
@@ -212,9 +216,9 @@ DPRINTF("win32 emulated bpp %d\n", psd->bpp);
 	bmpInfo.bV4XPelsPerMeter = 3078;
 	bmpInfo.bV4YPelsPerMeter = 3078;
 	bmpInfo.bV4ClrUsed = 0;
-	bmpInfo.bV4ClrImportant = 0;   
+	bmpInfo.bV4ClrImportant = 0;
 	bmpInfo.bV4CSType = LCS_CALIBRATED_RGB;
-	
+
 	return &scrdev;
 }
 
@@ -244,13 +248,13 @@ win32_update(PSD psd, MWCOORD x, MWCOORD y, MWCOORD width, MWCOORD height)
 			psd->addr, (BITMAPINFO*)&bmpInfo, DIB_RGB_COLORS);
 #else // specified height update (faster ?)
 	unsigned char *addr = psd->addr + (y * psd->pitch);
-	
+
 	if( width < 1 || height < 1 )
 		return;
-	
+
 	bmpInfo.bV4Height = -height;
 	bmpInfo.bV4SizeImage = height * psd->pitch;
-	
+
 	SetDIBitsToDevice(dcBuffer, 0, y, psd->xres, height, 0, 0, 0, height,
 			addr, (BITMAPINFO*)&bmpInfo, DIB_RGB_COLORS);
 #endif
