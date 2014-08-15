@@ -39,7 +39,7 @@ Fl_Calendar_Base::Fl_Calendar_Base (int x, int y, int w, int h,
 			     (h/6));
 #ifndef FLEK_FLTK_2
     days[i]->down_box (FL_THIN_DOWN_BOX);
-    days[i]->labelsize (10);
+    //days[i]->labelsize (10);
 #else
     days[i]->label_size (10);
 #endif
@@ -91,8 +91,11 @@ Fl_Calendar_Base::update ()
     sprintf (t, "%d", (i-dow+1));
     days[i]->label (strdup(t));
     days[i]->color (52);
-    if ((i-dow+1) == day ())
-      days[i]->color (selection_color());
+    days[i]->labelcolor(FL_BLACK);
+    if ((i-dow+1) == day ()) {
+      days[i]->color(FL_BLUE);
+      days[i]->labelcolor(FL_WHITE);
+    }
     days[i]->show ();
   }
 }
@@ -162,7 +165,7 @@ Fl_Calendar::Fl_Calendar (int x, int y, int w, int h,
 			      ((h - title_height)/7));
     weekdays[i]->box (FL_THIN_UP_BOX);  
 #ifndef FLEK_FLTK_2
-    weekdays[i]->labelsize (10);
+    //weekdays[i]->labelsize (10);
 #else
     weekdays[i]->label_size (10);
 #endif
@@ -170,20 +173,22 @@ Fl_Calendar::Fl_Calendar (int x, int y, int w, int h,
   }
    
   weekdays[SUNDAY]->label ("S");
+  weekdays[SUNDAY]->labelcolor (FL_RED);
   weekdays[MONDAY]->label ("M");
   weekdays[TUESDAY]->label ("T");
   weekdays[WEDNESDAY]->label ("W");
-  weekdays[THURSDAY]->label ("R");
+  weekdays[THURSDAY]->label ("T");
   weekdays[FRIDAY]->label ("F");
   weekdays[SATURDAY]->label ("S");
+  weekdays[SATURDAY]->labelcolor (FL_RED);
    
   prv_year = new Fl_Repeat_Button ((x - of + w - (int)(w/7) * 4), y, (w/7), (h/8), "Y-");
 #ifdef AGENDA
   prv_year->repeat (1000,500);
 #endif
   prv_year->box (FL_THIN_UP_BOX);
+  prv_year->labelcolor(FL_DARK_MAGENTA);
 #ifndef FLEK_FLTK_2
-  prv_year->labelsize (10);
   prv_year->down_box (FL_THIN_DOWN_BOX);
 #else
   prv_year->label_size (10);
@@ -196,8 +201,8 @@ Fl_Calendar::Fl_Calendar (int x, int y, int w, int h,
 #endif
   prv_month->box (FL_THIN_UP_BOX);
 #ifndef FLEK_FLTK_2
-  prv_month->labelsize (10);
   prv_month->down_box (FL_THIN_DOWN_BOX);
+  prv_month->labelcolor(FL_DARK_CYAN);
 #else
   prv_month->label_size (10);
 #endif
@@ -208,8 +213,8 @@ Fl_Calendar::Fl_Calendar (int x, int y, int w, int h,
   nxt_month->repeat (1000,500);
 #endif
   nxt_month->box (FL_THIN_UP_BOX);
+  nxt_month->labelcolor(FL_DARK_CYAN);
 #ifndef FLEK_FLTK_2
-  nxt_month->labelsize (10);
   nxt_month->down_box (FL_THIN_DOWN_BOX);
 #else
   nxt_month->label_size (10);
@@ -222,8 +227,8 @@ Fl_Calendar::Fl_Calendar (int x, int y, int w, int h,
 #endif
   nxt_year->box (FL_THIN_UP_BOX);
 #ifndef FLEK_FLTK_2
-  nxt_year->labelsize (10);
   nxt_year->down_box (FL_THIN_DOWN_BOX);
+  nxt_year->labelcolor(FL_DARK_MAGENTA);
 #else
   nxt_year->label_size (10);
 #endif
@@ -231,7 +236,7 @@ Fl_Calendar::Fl_Calendar (int x, int y, int w, int h,
 
   caption = new Fl_Box (x, y, (w/7)*3 + oi, (h/8));
   caption->box (FL_THIN_UP_BOX);
-  caption->labelsize (10);
+  caption->labelcolor(FL_BLUE);
 
   Fl_Calendar_Base::csize (x, y + title_height + (h - title_height) / 7, w, h - title_height - (h - title_height) / 7);
   update ();
@@ -431,26 +436,92 @@ static datestruct * fl_popcal(int popcalfmt)
 }
 
 /* XPM */
-static char * calendar_xpm[] = {
-"16 16 2 1",
-" 	c None",
-".	c #000000",
-"................",
-".              .",
-".              .",
-"................",
-".  .  .  .  .  .",
-".  .  .  .  .  .",
-"................",
-".  .  .  .  .  .",
-".  .  .  .  .  .",
-"................",
-".  .  .  .  .  .",
-".  .  .  .  .  .",
-"................",
-".  .  .  .  .  .",
-".  .  .  .  .  .",
-"................"};
+static const char *calendar_xpm[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 65 1",
+"  c #160101",
+". c #1D0101",
+"X c #1F0101",
+"o c #230000",
+"O c #220101",
+"+ c #240000",
+"@ c #556666",
+"# c #607171",
+"$ c #637474",
+"% c #950000",
+"& c #881111",
+"* c #C30000",
+"= c #CB0000",
+"- c #D50101",
+"; c #DD0101",
+": c #E40101",
+"> c #C12F2F",
+", c #D53D3D",
+"< c #DE4646",
+"1 c #E44E4E",
+"2 c #E75050",
+"3 c #EF5C5C",
+"4 c #F05A5A",
+"5 c #F56464",
+"6 c #F86363",
+"7 c #FB6D6D",
+"8 c #FB6E6E",
+"9 c #FD7777",
+"0 c #FF7E7E",
+"q c #718282",
+"w c #7D8E8E",
+"e c #869898",
+"r c #879898",
+"t c #95A5A5",
+"y c #A3B0B0",
+"u c #A6B5B5",
+"i c #AEBBBB",
+"p c #B1B1B1",
+"a c #FF8383",
+"s c #ECA1A1",
+"d c #F1A8A8",
+"f c #CCD6D6",
+"g c #CCDCDC",
+"h c gray84",
+"j c #D1DFDF",
+"k c #E8C4C4",
+"l c #FBD7D7",
+"z c #DAE9E9",
+"x c #E0ECEC",
+"c c #E6EFEF",
+"v c #E3F3F3",
+"b c #E6F5F5",
+"n c #EBF3F3",
+"m c #E9F6F6",
+"M c #E9F9F9",
+"N c #EDF8F8",
+"B c #F1F7F7",
+"V c #F1FAFA",
+"C c #F5FBFB",
+"Z c #F7FAFA",
+"A c #F9FDFD",
+"S c #FBFDFD",
+"D c #FDFEFE",
+"F c gray100",
+"G c None",
+/* pixels */
+"GGGG%GGGGGG%GGGG",
+"G::%h%::::%h%::G",
+"G;a,p,0000,p,a;G",
+"G-9>&>8888>&>9-G",
+"G=7lsdk5553137=G",
+"G*6<22<4444446*G",
+"GGFFFFFFFFFFFFGG",
+"GGDSSSSSSSSSSDGG",
+"GGAZyrtZZyeZZAGG",
+"GGCBBBwBBBwBBCGG",
+"GGVnfqinnnqnnVGG",
+"G+Nccc$ccc$ccN+G",
+"Gomxxj@xx@@@xmoG",
+"GObg#quzzzzzzbOG",
+"GXMvvvvvvvvvvMXG",
+"G ............ G"
+};
 
 
 void Fl_Date_Input::btnDate_Input_cb_i ()
