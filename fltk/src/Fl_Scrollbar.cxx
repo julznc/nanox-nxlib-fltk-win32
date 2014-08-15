@@ -16,7 +16,7 @@
 //     http://www.fltk.org/str.php
 //
 
-
+#include <config.h>
 #include <FL/Fl.H>
 #include <FL/Fl_Scrollbar.H>
 #include <FL/fl_draw.H>
@@ -203,6 +203,46 @@ void Fl_Scrollbar::draw() {
   int Y = y()+Fl::box_dy(box());
   int W = w()-Fl::box_dw(box());
   int H = h()-Fl::box_dh(box());
+
+#ifdef USE_NANOX // is small size, draw simple scrollbar
+  int T = (horizontal()? H : W)/2+1;
+  if( T < 4 ) {
+    X = x(); Y = y(); W = w(); H = h();
+    double val;
+    if (minimum() == maximum())
+      val = 0.5;
+    else {
+      val = (value()-minimum())/(maximum()-minimum());
+      if (val > 1.0) val = 1.0;
+      else if (val < 0.0) val = 0.0;
+    }
+
+    int ww = (horizontal()? W : H);
+    int S = int(slider_size()*ww+.5);
+    if (S < T) S = T;
+    int xx = int(val*(ww-S)+.5);
+    
+    int xsl, ysl, wsl, hsl;
+    if (horizontal()) {
+      xsl = X+xx; wsl = S; ysl = Y; hsl = H;
+    } else {
+      ysl = Y+xx; hsl = S; xsl = X; wsl = W;
+    }
+    
+    fl_push_clip(X, Y, W, H);
+    if(fl_display && fl_visual->depth == 1){ // monochrome
+      draw_box();
+      if (wsl>0 && hsl>0) draw_box(FL_UP_BOX, xsl, ysl, wsl, hsl, selection_color());
+    }else {
+      draw_box(FL_FLAT_BOX, X, Y, W, H, FL_GRAY0);
+      if (wsl>0 && hsl>0) draw_box(FL_FLAT_BOX, xsl, ysl, wsl, hsl, selection_color());
+    }
+    fl_pop_clip();
+    
+    return;
+  }
+#endif
+
   if (horizontal()) {
     if (W < 3*H) {Fl_Slider::draw(X,Y,W,H); return;}
     Fl_Slider::draw(X+H,Y,W-2*H,H);
