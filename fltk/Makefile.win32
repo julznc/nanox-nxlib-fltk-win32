@@ -126,6 +126,7 @@ FltkObjs = \
 	src/fl_engraved_label.o \
 	src/fl_file_dir.o \
 	src/fl_font.o \
+	src/fl_gleam.o \
 	src/fl_gtk.o \
 	src/fl_labeltype.o \
 	src/fl_line_style.o \
