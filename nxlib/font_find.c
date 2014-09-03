@@ -21,7 +21,6 @@ char **font_enumfonts(char *pattern, int maxnames, int *count_return, int chkali
 void font_freefontnames(char **fontlist);
 
 static char **findXLFDfont(char *pattern, int maxnames, int *count, int chkalias);
-static FILE * _nxOpenFontDir(char *str);
 static void _nxSetDefaultFontDir(void);
 static void _nxSetFontDir(char **directories, int ndirs);
 static void _nxFreeFontDir(char ***list);
@@ -29,6 +28,117 @@ static void _nxFreeFontDir(char ***list);
 /* nxlib font.c*/
 static char **_nxfontlist = NULL;
 static int _nxfontcount = 0;
+
+#define OVERRIDE_FILE_FUNCS 1
+
+#if OVERRIDE_FILE_FUNCS
+typedef struct _nxFILE {
+    char path[64+1];
+    char content[4096+1];
+    int position;
+    int size;
+} nxFILE;
+
+static nxFILE **gfontsaliasdirs = NULL; // array of both "fonts.dir" & "fonts.alias" files
+
+static nxFILE *nxfopen(const char *path, const char *flag)
+{
+    int maxfiles, hdl, idx;
+    nxFILE *file;
+
+    if(_nxfontcount<1 || !path || !flag) // "_nxSetDefaultFontDir()" not yet called
+        return NULL;
+    //DPRINTF("nxfopen(%s, %s)", path, flag);
+    maxfiles = (_nxfontcount * 2) + 1; // for both dir & alias files (+1 NULL end)
+    if(!gfontsaliasdirs) {
+        gfontsaliasdirs = (nxFILE **)calloc( sizeof(nxFILE *) * maxfiles, 1);
+        if(!gfontsaliasdirs)
+            return NULL;
+    }
+
+    // scan gfontsaliasdirs, check if "path" was previously opened
+    for(idx=0; gfontsaliasdirs[idx]; idx++) {
+        file = gfontsaliasdirs[idx];
+        if( strncmp(file->path, path, sizeof(file->path)) == 0 ) {
+            DPRINTF("\"%s\" was previously tried to opened.", path);
+            if(file->size<1)
+                return NULL; // was either empty or not found
+            file->position = 0; // do not re-open, just reset buffer position pointer
+            return file;
+        }
+    }
+
+    // allocate a new nxfile
+    file = (nxFILE *)calloc(sizeof(nxFILE), 1);
+    if(!file)
+        return NULL;
+
+    // try to open the path & read the contents
+    hdl = open(path, 0);//O_RDONLY);
+    strncpy(file->path, path, sizeof(file->path)-1);
+    if( hdl>=0 ) {
+        file->size = read(hdl, file->content, sizeof(file->content)-1);
+        //DPRINTF("file size = %d, content = %s", file->size, file->content);
+        close(hdl); // close handle, but do not return yet.
+        DPRINTF("stored %d bytes from \"%s\" to 0x%X\r\n", file->size, path, file->content);
+    }
+
+    // append to file array, even if the path was not found
+    for(idx=0; idx<maxfiles; idx++) {
+        if(!gfontsaliasdirs[idx]) {
+            gfontsaliasdirs[idx] = file;
+            if(file->size<1)
+                return NULL; // empty or path not found
+            return file;
+        }
+    }
+
+    return NULL;
+}
+
+static int nxfclose(nxFILE *file)
+{
+    return 0; // do nothing
+}
+
+static char *nxfgets(char *buff, int n, nxFILE *file)
+{
+    int idx;
+    char *dst;
+    char *src;
+
+    if(!buff || n<2 || !file) // minimum of 2 bytes
+        return NULL;
+
+    // scan gfontsaliasdirs, look for "file"
+    for(idx=0; gfontsaliasdirs[idx]; idx++) {
+        if( file == gfontsaliasdirs[idx] ) {
+            if( file->position >= file->size )
+                return NULL; // EOF or file empty
+            //DPRINTF("reading %d bytes from \"%s\", position(%d/%d) content = %.*s",
+            //        n, file->path, file->position, file->size, n, file->content+file->position);
+            dst = buff;
+            src = file->content+file->position;
+            while(--n){ // copy up to n-1
+                *dst++ = *src;
+                file->position++;
+                if(*src=='\n' || *src=='\0') // string copy until a '\n' or EOF (?)
+                    break;
+                src++;
+            }
+            *dst = '\0'; // null terminate: buff[n-1]=0
+            return buff;
+        }
+    }
+    return NULL; // file not found
+}
+
+#define FILE                    nxFILE
+#define fopen(path,flags)       nxfopen(path,flags)
+#define fclose(file)            nxfclose(file)
+#define fgets(buff,num,file)    nxfgets(buff,num,file)
+
+#endif // OVERRIDE_FILE_FUNCS
 
 static FILE *
 _nxOpenFontDir(char *str)
@@ -72,7 +182,7 @@ _nxSetFontDir(char **directories, int ndirs)
 
 	_nxfontlist = (char **)calloc(ndirs+1, sizeof(char *));
 	for (i = 0; i < ndirs; i++) {
-		printf("nxSetFontDir %d = %s\n", i, directories[i]);
+		DPRINTF("nxSetFontDir %d = %s\n", i, directories[i]);
 		_nxfontlist[i] = strdup(directories[i]);
 	}
 
@@ -93,6 +203,14 @@ _nxFreeFontDir(char ***addrlist)
 
 	/* possibly zero globals*/
 	if (addrlist == &_nxfontlist) {
+#if OVERRIDE_FILE_FUNCS // free gfontsaliasdirs
+        if(gfontsaliasdirs) {
+            for(i = 0; gfontsaliasdirs[i]; i++)
+                free(gfontsaliasdirs[i]);
+            free(gfontsaliasdirs);
+            gfontsaliasdirs = NULL;
+        }
+#endif // OVERRIDE_FILE_FUNCS
 		_nxfontlist = 0;
 		_nxfontcount = 0;
 	}
@@ -503,7 +621,7 @@ xlfdheight(const char *xlfd)
  * If no match is found, NULL is returned.
  *
  * This routine calls strdup() for return value, caller must free after use.
- */ 
+ */
 static char *
 findfont_nowildcard(const char *fontspec, int *height)
 {
@@ -971,7 +1089,7 @@ XFreeFontPath(char **list)
 
 /* Stub out XCreateFontSet*/
 XFontSet
-XCreateFontSet(Display *display, _Xconst char *base_font_name_list, 
+XCreateFontSet(Display *display, _Xconst char *base_font_name_list,
 	char ***missing_charset_list_return, int *missing_charset_count_return,
 	char **def_string_return)
 {
