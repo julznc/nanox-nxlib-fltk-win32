@@ -33,8 +33,8 @@ static int _nxfontcount = 0;
 
 #if OVERRIDE_FILE_FUNCS
 typedef struct _nxFILE {
-    char path[64+1];
-    char content[4096+1];
+    char *path;
+    char *content;
     int position;
     int size;
 } nxFILE;
@@ -59,7 +59,7 @@ static nxFILE *nxfopen(const char *path, const char *flag)
     // scan gfontsaliasdirs, check if "path" was previously opened
     for(idx=0; gfontsaliasdirs[idx]; idx++) {
         file = gfontsaliasdirs[idx];
-        if( strncmp(file->path, path, sizeof(file->path)) == 0 ) {
+        if( file->path && strcmp(file->path, path)==0 ) {
             DPRINTF("\"%s\" was previously tried to opened.", path);
             if(file->size<1)
                 return NULL; // was either empty or not found
@@ -75,9 +75,14 @@ static nxFILE *nxfopen(const char *path, const char *flag)
 
     // try to open the path & read the contents
     hdl = open(path, 0);//O_RDONLY);
-    strncpy(file->path, path, sizeof(file->path)-1);
+    file->path = strdup(path);
     if( hdl>=0 ) {
-        file->size = read(hdl, file->content, sizeof(file->content)-1);
+        file->size = lseek(hdl, 0, SEEK_END);
+        if(file->size > 0) {
+            lseek(hdl, 0, SEEK_SET);
+            file->content = (char *)calloc(file->size+1, 1);
+            file->size = file->content? read(hdl, file->content, file->size) : 0;
+        }
         //DPRINTF("file size = %d, content = %s", file->size, file->content);
         close(hdl); // close handle, but do not return yet.
         DPRINTF("stored %d bytes from \"%s\" to 0x%X\r\n", file->size, path, file->content);
@@ -205,8 +210,13 @@ _nxFreeFontDir(char ***addrlist)
 	if (addrlist == &_nxfontlist) {
 #if OVERRIDE_FILE_FUNCS // free gfontsaliasdirs
         if(gfontsaliasdirs) {
-            for(i = 0; gfontsaliasdirs[i]; i++)
+            for(i = 0; gfontsaliasdirs[i]; i++) {
+                if(gfontsaliasdirs[i]->path)
+                    free(gfontsaliasdirs[i]->path);
+                if(gfontsaliasdirs[i]->content)
+                    free(gfontsaliasdirs[i]->content);
                 free(gfontsaliasdirs[i]);
+            }
             free(gfontsaliasdirs);
             gfontsaliasdirs = NULL;
         }
