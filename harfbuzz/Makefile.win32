@@ -1,0 +1,56 @@
+
+FT2_DIR = ../freetype
+
+INCLUDES = -I./src -I./src/hb-ucdn -I$(FT2_DIR)/include
+
+CFLAGS = -DHB_NO_MT -DHAVE_OT -DHAVE_UCDN -DHAVE_FREETYPE
+
+OBJS = \
+	src/hb-blob.o \
+	src/hb-buffer-serialize.o \
+	src/hb-buffer.o \
+	src/hb-common.o \
+	src/hb-face.o \
+	src/hb-font.o \
+	src/hb-ft.o \
+	src/hb-set.o \
+	src/hb-shape.o \
+	src/hb-shape-plan.o \
+	src/hb-shaper.o \
+	src/hb-unicode.o \
+	src/hb-warning.o \
+	src/hb-ot-font.o \
+	src/hb-ot-layout.o \
+	src/hb-ot-map.o \
+	src/hb-ot-tag.o \
+	src/hb-ot-shape.o \
+	src/hb-ot-shape-complex-arabic.o \
+	src/hb-ot-shape-complex-default.o \
+	src/hb-ot-shape-complex-hangul.o \
+	src/hb-ot-shape-complex-hebrew.o \
+	src/hb-ot-shape-complex-indic.o \
+	src/hb-ot-shape-complex-indic-table.o \
+	src/hb-ot-shape-complex-myanmar.o \
+	src/hb-ot-shape-complex-sea.o \
+	src/hb-ot-shape-complex-thai.o \
+	src/hb-ot-shape-complex-tibetan.o \
+	src/hb-ot-shape-normalize.o \
+	src/hb-ot-shape-fallback.o \
+	src/hb-fallback-shape.o \
+	src/hb-ucdn.o \
+	src/hb-ucdn/ucdn.o
+
+%.o : %.cc
+	@echo [CXX] $?
+	@g++ $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+%.o : %.c
+	@echo [CC] $?
+	@gcc $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+all: $(OBJS)
+	ar rcs lib/libharfbuzz.a $(OBJS)
+	@echo done
+
+clean:
+	rm -rf $(OBJS)

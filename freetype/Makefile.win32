@@ -1,0 +1,58 @@
+
+INCLUDES = -I./include -I./objs -I./builds/unix
+
+CFLAGS = -DFT_CONFIG_CONFIG_H="<ftconfig.h>" -DFT2_BUILD_LIBRARY -DFT_CONFIG_MODULES_H="<ftmodule.h>"
+
+OBJS = \
+	src/base/ftsystem.o \
+	src/base/ftdebug.o \
+	src/base/ftinit.o \
+	src/base/ftbase.o \
+	src/base/ftbbox.o \
+	src/base/ftbdf.o \
+	src/base/ftbitmap.o \
+	src/base/ftcid.o \
+	src/base/ftfstype.o \
+	src/base/ftgasp.o \
+	src/base/ftglyph.o \
+	src/base/ftgxval.o \
+	src/base/ftlcdfil.o \
+	src/base/ftmm.o \
+	src/base/ftotval.o \
+	src/base/ftpatent.o \
+	src/base/ftpfr.o \
+	src/base/ftstroke.o \
+	src/base/ftsynth.o \
+	src/base/fttype1.o \
+	src/base/ftwinfnt.o \
+	src/base/ftxf86.o \
+	src/truetype/truetype.o \
+	src/type1/type1.o \
+	src/cff/cff.o \
+	src/cid/type1cid.o \
+	src/pfr/pfr.o \
+	src/type42/type42.o \
+	src/winfonts/winfnt.o \
+	src/pcf/pcf.o \
+	src/bdf/bdf.o \
+	src/sfnt/sfnt.o \
+	src/autofit/autofit.o \
+	src/pshinter/pshinter.o \
+	src/raster/raster.o \
+	src/smooth/smooth.o \
+	src/cache/ftcache.o \
+	src/gzip/ftgzip.o \
+	src/lzw/ftlzw.o \
+	src/psaux/psaux.o \
+	src/psnames/psnames.o
+
+%.o : %.c
+	@echo [CC] $?
+	@gcc $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+all: $(OBJS)
+	ar rcs objs/.libs/libfreetype.a $(OBJS)
+	@echo done
+
+clean:
+	rm -rf $(OBJS)
