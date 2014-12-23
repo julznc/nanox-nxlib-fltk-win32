@@ -32,13 +32,7 @@
 // Include necessary header files...
 //
 
-#include <FL/Fl.H>
 #include <FL/Fl_Animated_GIF_Image.H>
-#include <FL/Fl_Widget.H>
-#include <stdio.h>
-#include <stdlib.h>
-#include "flstring.h"
-#include <vector>
 
 // Read a .gif file and convert it to a "xpm" format (actually my
 // modified one with compressed colormaps).
@@ -77,43 +71,40 @@
  *                     (415) 336-1080
  */
 
-typedef unsigned char uchar;
-
 int Fl_Animated_GIF_Image::nextbyte()
 {
-	int x=getc(GifFile);
-	//LOGPRINT("Read  0x%02x from offset %d (0x%02x)\n",x,foffset,foffset);
-	foffset++;
-	return x;
-
+  int x=getc(GifFile);
+  //LOGPRINT("Read  0x%02x from offset %d (0x%02x)\n",x,foffset,foffset);
+  foffset++;
+  return x;
 }
 
 int Fl_Animated_GIF_Image::getshort()
 {
-	int x=nextbyte();
-	int y=nextbyte();
-	if (x<0) return 0;
-	if (y<0) return 0;
-	return x+(y*256);
+  int x=nextbyte();
+  int y=nextbyte();
+  if (x<0) return 0;
+  if (y<0) return 0;
+  return x+(y*256);
 }
 
 unsigned int Fl_Animated_GIF_Image::framecount()
 {
-	return this->FrameCount;
+  return FrameCount;
 }
 
 unsigned int Fl_Animated_GIF_Image::framedelay()
 {
-	/* returns delay of current frame in msec */
-        unsigned int currdelay=(*FrameDelay)[currframe]; // in 1/100 sec.
-	return 10*currdelay;
+  /* returns delay of current frame in msec */
+  unsigned int currdelay = FrameDelay[currframe]; // in 1/100 sec.
+  return 10*currdelay;
 }
 
 
 void Fl_Animated_GIF_Image::framedelay(unsigned int newdelay)
 {
-	unsigned int mynewdelay=(unsigned int)(newdelay/10);
-	(*FrameDelay)[currframe]=mynewdelay;
+  unsigned int mynewdelay = (unsigned int)(newdelay/10);
+  FrameDelay[currframe] = mynewdelay;
 }
 
 int Fl_Animated_GIF_Image::read_image_data(int Left,int top,int frameWidth,int frameHeight,int BitsPerPixel)
@@ -154,24 +145,24 @@ int Fl_Animated_GIF_Image::read_image_data(int Left,int top,int frameWidth,int f
 
   for (;;) {
 
-/* Fetch the next code from the raster data stream.  The codes can be
- * any length from 3 to 12 bits, packed into 8-bit bytes, so we have to
- * maintain our location as a pointer and a bit offset.
- * In addition, gif adds totally useless and annoying block counts
- * that must be correctly skipped over. */
+    /* Fetch the next code from the raster data stream.  The codes can be
+     * any length from 3 to 12 bits, packed into 8-bit bytes, so we have to
+     * maintain our location as a pointer and a bit offset.
+     * In addition, gif adds totally useless and annoying block counts
+     * that must be correctly skipped over. */
     int CurCode = thisbyte;
     if (frombit+CodeSize > 7) {
       if (blocklen <= 0) {
-	blocklen = nextbyte();
-	if (blocklen <= 0) break;
+        blocklen = nextbyte();
+        if (blocklen <= 0) break;
       }
       thisbyte = nextbyte(); blocklen--;
       CurCode |= thisbyte<<8;
     }
     if (frombit+CodeSize > 15) {
       if (blocklen <= 0) {
-	blocklen = nextbyte();
-	if (blocklen <= 0) break;
+        blocklen = nextbyte();
+        if (blocklen <= 0) break;
       }
       thisbyte = nextbyte(); blocklen--;
       CurCode |= thisbyte<<16;
@@ -194,12 +185,13 @@ int Fl_Animated_GIF_Image::read_image_data(int Left,int top,int frameWidth,int f
     uchar OutCode[1025]; // temporary array for reversing codes
     uchar *tp = OutCode;
     int i;
-    if (CurCode < FreeCode) 
-    { i = CurCode; }
-    else if (CurCode == FreeCode) {*tp++ = (uchar)FinChar; i = OldCode;}
-    else { 
-        //LOGPRINT("Error reading GIF");
-	return 1; /* error reading GIF */ 
+    if (CurCode < FreeCode) {
+      i = CurCode;
+    } else if (CurCode == FreeCode) {
+      *tp++ = (uchar)FinChar; i = OldCode;
+    } else {
+      //LOGPRINT("Error reading GIF");
+      return 1; /* error reading GIF */
     }
 
     while (i >= ColorMapSize) {*tp++ = Suffix[i]; i = Prefix[i];}
@@ -207,16 +199,16 @@ int Fl_Animated_GIF_Image::read_image_data(int Left,int top,int frameWidth,int f
     do {
       *p++ = *--tp;
       if (p >= eol) {
-	if (!Interlace) YC++;
-	else switch (Pass) {
-	case 0: YC += 8; if (YC >= (frameHeight+top)) {Pass++; YC = top+4;} break;
-	case 1: YC += 8; if (YC >= (frameHeight+top)) {Pass++; YC = top+2;} break;
-	case 2: YC += 4; if (YC >= (frameHeight+top)) {Pass++; YC = top+1;} break;
-	case 3: YC += 2; break;
-	}
-	if (YC>=frameHeight+top) YC=top; /* cheap bug fix when excess data */
-	p = Image + YC*canvasWidth + Left;
-	eol = p+frameWidth;
+        if (!Interlace) YC++;
+        else switch (Pass) {
+          case 0: YC += 8; if (YC >= (frameHeight+top)) {Pass++; YC = top+4;} break;
+          case 1: YC += 8; if (YC >= (frameHeight+top)) {Pass++; YC = top+2;} break;
+          case 2: YC += 4; if (YC >= (frameHeight+top)) {Pass++; YC = top+1;} break;
+          case 3: YC += 2; break;
+       }
+       if (YC>=frameHeight+top) YC=top; /* cheap bug fix when excess data */
+        p = Image + YC*canvasWidth + Left;
+        eol = p+frameWidth;
       }
     } while (tp > OutCode);
 
@@ -225,21 +217,21 @@ int Fl_Animated_GIF_Image::read_image_data(int Left,int top,int frameWidth,int f
       Suffix[FreeCode] = FinChar;
       FreeCode++;
       if (FreeCode > ReadMask) {
-	if (CodeSize < 12) {
-	  CodeSize++;
-	  ReadMask = (1 << CodeSize) - 1;
-	}
-	else FreeCode--;
+        if (CodeSize < 12) {
+          CodeSize++;
+          ReadMask = (1 << CodeSize) - 1;
+        }
+        else FreeCode--;
       }
     }
     OldCode = CurCode;
   }
 
-  /* read block terminator byte. Should always be 0 
+  /* read block terminator byte. Should always be 0
      so if this is not the case, that's an error condition. */
-//  int returning=nextbyte();
+  //  int returning=nextbyte();
   //LOGPRINT("Finished reading image data, file cursor is now at %d\n",foffset);
-//  //LOGPRINT("Byte at that point should be zero and is %d\n",returning);
+  //LOGPRINT("Byte at that point should be zero and is %d\n",returning);
   return 0; //returning;
 }
 
@@ -251,12 +243,14 @@ void Fl_Animated_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int f
   w(canvasWidth);
   h(canvasHeight);
   d(1);
-  
-  new_data = new char*[canvasHeight+2];
-  Frame->push_back(new_data);
-  FrameHeight->push_back(canvasHeight);
+
+  char **new_data = new char*[canvasHeight+2]; // Data array containing decoded scan lines of image
+  Frame.push_back(new_data);
+  FrameHeight.push_back(canvasHeight);
   // transparent pixel must be zero, swap if it isn't
   // But only if it's a local colormap OR the first frame.
+
+  uchar *p;
 
   if (has_transparent && (transparent_pixel != 0)) {
     p = Image+canvasWidth*canvasHeight;
@@ -265,28 +259,28 @@ void Fl_Animated_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int f
       else if (*p==0) *p = transparent_pixel;
     }
 
-    if ((localcolormap==1) || 
-       ((localcolormap==0) && (FrameCount==1))
-    ) {
-    //LOGPRINT("swap transparent pixel with zero\n");
-    
-    uchar t;
-    t                        = Red[0];
-    Red[0]                   = Red[transparent_pixel];
-    Red[transparent_pixel]   = t;
+    if ((localcolormap==1) ||
+       ((localcolormap==0) && (FrameCount==1))) {
+      //LOGPRINT("swap transparent pixel with zero\n");
 
-    t                        = Green[0];
-    Green[0]                 = Green[transparent_pixel];
-    Green[transparent_pixel] = t;
+      uchar t                  = Red[0];
+      Red[0]                   = Red[transparent_pixel];
+      Red[transparent_pixel]   = t;
 
-    t                        = Blue[0];
-    Blue[0]                  = Blue[transparent_pixel];
-    Blue[transparent_pixel]  = t;
+      t                        = Green[0];
+      Green[0]                 = Green[transparent_pixel];
+      Green[transparent_pixel] = t;
+
+      t                        = Blue[0];
+      Blue[0]                  = Blue[transparent_pixel];
+      Blue[transparent_pixel]  = t;
     }
   }
 
   // find out what colors are actually used:
-  uchar used[256]; uchar remap[256];
+  uchar used[256];uchar remap[256];
+  memset(used, 0, sizeof(used));
+  memset(remap, 0, sizeof(remap));
   int i;
   for (i = 0; i < ColorMapSize; i++) used[i] = 0;
   p = Image+canvasWidth*canvasHeight;
@@ -302,7 +296,7 @@ void Fl_Animated_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int f
 
   // write the first line of xpm data (use suffix as temp array):
   int length = sprintf((char*)(Suffix),
-		       "%d %d %d %d",canvasWidth,canvasHeight,-numcolors,1);
+               "%d %d %d %d",canvasWidth,canvasHeight,-numcolors,1);
   new_data[0] = new char[length+1];
   strcpy(new_data[0], (char*)Suffix);
 
@@ -325,9 +319,9 @@ void Fl_Animated_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int f
     memcpy(new_data[i + 2], (char*)(Image + i*canvasWidth), canvasWidth);
     new_data[i + 2][canvasWidth] = 0;
   }
-  
+
   data((const char **)new_data, canvasHeight + 2);
-  alloc_data = 1;
+  alloc_data = 0; // manual delete of data in the destructor
 
   delete[] Image; // ** allocated in read_image_data
 
@@ -335,177 +329,145 @@ void Fl_Animated_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int f
 
 Fl_Animated_GIF_Image::~Fl_Animated_GIF_Image()
 {
-	/* stop using the data about to disappear */
-	Fl::remove_timeout(this->animate); 
+  /* stop using the data about to disappear */
+  Fl::remove_timeout(animate);
 
-	// TODO: Clean up contents of vector
-	while (Frame->size()>0)
-	{	
-		/* This results in heap corruption: */
-
-		//int index=Frame->size()-1;
-		//delete (*Frame)[index];
-
-		/*
-		char** data=(*Frame)[index]; 
-		int fheight=(*FrameHeight)[index];
-		
-		for (int j=0;j<fheight+2;j++)
-		{
-			delete data[j];
-		}
-		delete data; */
-
-		Frame->pop_back();
-	}
-
-	delete Frame; Frame=0;
-
-	FrameHeight->clear();
-	delete FrameHeight; FrameHeight=0;
-
-	FrameDelay->clear();
-	delete FrameDelay; FrameDelay=0;
+  for(int i=0; i<Frame.size(); i++) {
+    char **data = Frame[i];
+    for(int j=0; j<FrameHeight[i]+2; j++) // Frame.size() == FrameHeight.size()
+      delete[] data[j];
+    delete[] data;
+  }
+  //Frame.clear();
+  std::vector<char**>().swap(Frame);
+  //FrameHeight.clear();
+  std::vector<int>().swap(FrameHeight);
+  //FrameDelay.clear();
+  std::vector<int>().swap(FrameDelay);
 }
 
 void Fl_Animated_GIF_Image::animating(int yesno)
 {
-	/* Set animation for running: 1=yes, 0=no
-           Lacking a standardised bool type, the 
-           checks are to make sure only valid values
-	   are interpreted */
-	if (yesno==1) 
-	{
-		run_animation=1; 
-		animate(this);
-	}
-	else
-	{
-		if (yesno==0) 
-		{ 
-			run_animation=0; 
-			Fl::remove_timeout(this->animate);
-		}
-	}
-	return;
+  /* Set animation for running: 1=yes, 0=no */
+  if (yesno==1) {
+    run_animation=1;
+    animate(this);
+  } else if (!yesno) {
+    run_animation=0;
+    Fl::remove_timeout(animate);
+  }
 }
 
 int Fl_Animated_GIF_Image::animating()
 {
-	return run_animation;
+  return run_animation;
 }
 
 void Fl_Animated_GIF_Image::select_frame(unsigned int framenum)
 {
-
   if (framenum>=FrameCount) return;
-  int fheight=(*FrameHeight)[framenum];
+  int fheight = FrameHeight[framenum];
   ((Fl_Pixmap*)this)->Fl_Pixmap::uncache();
-  data((*Frame)[framenum], 2+ fheight);
-  alloc_data = 1;
-
+  data(Frame[framenum], 2+ fheight);
 }
 
 void Fl_Animated_GIF_Image::animate(void* instance)
 {
-	Fl_Animated_GIF_Image* mythis=(Fl_Animated_GIF_Image*)instance;
-//	//LOGPRINT("animate, currframe=%d\n",mythis->currframe);
+  Fl_Animated_GIF_Image *image = (Fl_Animated_GIF_Image *)instance;
 
-	mythis->currframe++;
-	int stopanimate=0;
-	if (mythis->currframe>=mythis->FrameCount) 
-	{
-		if (mythis->repcount>0)
-		{
-			mythis->repcount--;
-			if (mythis->repcount==0)
-			{
-				stopanimate=1; /* end of animation. */
-			} else {
-				mythis->currframe=0;
-			}
-		} else {
-			mythis->currframe=0;
-		}
-	}
-	mythis->select_frame(mythis->currframe);
-	Fl_Widget* parent=mythis->parent();
-	if (parent!=NULL) { parent->damage(); parent->redraw(); }
-	if (stopanimate==0)
-	{
-		// frame delay is specified in 100ths of seconds
-		double framedelay=(double)(((*(mythis->FrameDelay))[mythis->currframe])*10);
-	        
-		Fl::add_timeout(framedelay/1000,
-			mythis->animate,
-			instance);
-	}
-	return;
+  int stopanimate = 0;
+  if (++image->currframe >= image->FrameCount) {
+    if (image->repcount>0) {
+      image->repcount--;
+      if (image->repcount==0) stopanimate=1; /* end of animation. */
+      else image->currframe=0;
+    } else {
+      image->currframe=0;
+    }
+  }
+
+  image->select_frame(image->currframe);
+
+  Fl_Widget* wgt = image->parent();
+  if (wgt) {
+    //wgt->redraw();
+    for(Fl_Widget *grp = wgt->parent(); grp; grp = grp->parent()) {
+      if(!grp->parent()) { // already the topmost parent
+        // fix me: assumes image is at the center (i.e. check for different alignments)
+        int xoff = (wgt->w() - image->w()) / 2;
+        int yoff = (wgt->h() - image->h()) / 2;
+		if(xoff<0 || yoff<0)
+          grp->damage(FL_DAMAGE_CHILD|FL_DAMAGE_EXPOSE, wgt->x()+xoff, wgt->y()+yoff, image->w(), image->h());
+        else
+          grp->damage(FL_DAMAGE_CHILD|FL_DAMAGE_EXPOSE, wgt->x(), wgt->y(), wgt->w(), wgt->h());
+      }
+    }
+  }
+
+  if (!stopanimate) {
+    // frame delay is specified in 100ths of seconds
+    int framedelay = image->FrameDelay[image->currframe];
+    Fl::repeat_timeout((double)framedelay/100, animate, instance);
+  }
 }
 
 unsigned int Fl_Animated_GIF_Image::repeatcount()
 {
-	return this->repcount;
+  return repcount;
 }
 
 void Fl_Animated_GIF_Image::repeatcount(unsigned int newcount)
 {
-	this->repcount=newcount;
+  repcount = newcount;
 }
 
 Fl_Widget* Fl_Animated_GIF_Image::parent()
 {
-	return this->_parent;
+  return _parent;
 }
 
 void Fl_Animated_GIF_Image::parent(Fl_Widget* p_parent)
 {
-	this->_parent=p_parent;
+  _parent = p_parent;
 }
 
-Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
+Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(const char *infname)
+  : Fl_Pixmap((char *const*)NULL),
+    FrameCount(0), _parent(NULL),
+    canvasWidth(0), canvasHeight(0), repcount(0/* By default loop forever */),
+    CodeSize(0), Interlace(0),
+    transparent_pixel(0), has_transparent(0), Image(NULL),
+    foffset(0), blocklen(0), run_animation(0), localcolormap(0), currframe(0)
+{
   //LOGPRINT("Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(\"%s\")\n",infname);
-  int delay; // not used for now
-  _parent=0;
-  FrameCount=0;
-  foffset=0;
-  Red=(uchar*)0;
-  Green=(uchar*)0;
-  Blue=(uchar*)0;
-  Frame=new std::vector<char**>();
-  FrameHeight=new std::vector<unsigned int>();
-  FrameDelay=new std::vector<unsigned int>();
-  this->repcount=0; /* By default loop forever */
-  // tables used by LZW decompresser:
-  short int _Prefix[4096];
-  uchar _Suffix[4096];
 
-  Prefix=_Prefix;
-  Suffix=_Suffix;
-  
   if ((GifFile = fopen(infname, "rb")) == NULL) {
     Fl::error("Fl_Animated_GIF_Image: Unable to open %s!", infname);
     return;
   }
 
-  {char b[6];
-  if (fread(b,1,6,GifFile)<6) {
-    fclose(GifFile);
-    return; /* quit on eof */
+  {
+    char b[6];
+    if (fread(b,1,6,GifFile)<6) {
+      fclose(GifFile);
+      return; /* quit on eof */
+    }
+    if (b[0]!='G' || b[1]!='I' || b[2] != 'F') {
+      fclose(GifFile);
+      Fl::error("Fl_Animated_GIF_Image: %s is not a GIF file.\n", infname);
+      return;
+    }
+    if (b[3]!='8' || b[4]>'9' || b[5]!= 'a')
+      Fl::warning("%s is version %c%c%c.",infname,b[3],b[4],b[5]);
   }
-  if (b[0]!='G' || b[1]!='I' || b[2] != 'F') {
-    fclose(GifFile);
-    Fl::error("Fl_Animated_GIF_Image: %s is not a GIF file.\n", infname);
-    return;
-  }
-  if (b[3]!='8' || b[4]>'9' || b[5]!= 'a')
-    Fl::warning("%s is version %c%c%c.",infname,b[3],b[4],b[5]);
-  }
+
   foffset=6;
   canvasWidth=getshort();
-  //LOGPRINT("Canvas width is %d\n",canvasWidth);
   canvasHeight=getshort();
-  //LOGPRINT("Canvas height is %d\n",canvasHeight);
+  //LOGPRINT("Canvas width(%d) height(%d)\n", canvasWidth, canvasHeight);
+
+  if(canvasWidth>4096) canvasWidth=4096;
+  if(canvasHeight>4096) canvasHeight=4096;
 
   uchar ch = nextbyte();
   char HasColormap = ((ch & 0x80) != 0);
@@ -513,20 +475,12 @@ Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(const char *infname) : Fl_Pixmap((c
   int ColorMapSize = 1 << BitsPerPixel;
   // int OriginalResolution = ((ch>>4)&7)+1;
   // int SortedTable = (ch&8)!=0;
-  /* ch = */ nextbyte(); // Background Color index
-  /* ch = */ nextbyte(); // Aspect ratio is N/64
-
-  // Read in global colormap:
-  transparent_pixel = 0;
-  has_transparent = 0;
-
-  uchar R[256], G[256], B[256]; /* color map */
-
-  Red=R; Green=G; Blue=B; /* Point class color map to stack color map */
+  ch = nextbyte(); // Background Color index
+  ch = nextbyte(); // Aspect ratio is N/64
 
   if (HasColormap) {
     //LOGPRINT("Reading colormap.\n");
-    for (int i=0; i < ColorMapSize; i++) {	
+    for (int i=0; i < ColorMapSize; i++) {
       Red[i] = (uchar)nextbyte();
       Green[i] = (uchar)nextbyte();
       Blue[i] = (uchar)nextbyte();
@@ -540,77 +494,73 @@ Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(const char *infname) : Fl_Pixmap((c
   for (;;) {
     int i=nextbyte();
     if (i==0) {
-       if (is_animation==1) {
-          is_animation=0;
-	  i=nextbyte();
-       }
+      if (is_animation==1) {
+        is_animation=0;
+        i=nextbyte();
+      }
     }
 
     if (i < 0) {
       fclose(GifFile);
-      Fl::error("Fl_Animated_GIF_Image: %s - unexpected EOF",infname); 
+      Fl::error("Fl_Animated_GIF_Image: %s - unexpected EOF",infname);
       return;
     }
-
-    blocklen=0;
 
     if (i == 0x3B) break; // return 0;  eof code // MRJB: WAS DISABLED. Trailer: Sentinel ';'.
 
     if (i==0) {
-	//LOGPRINT("unexpected 0 byte at offset %d...\n",foffset);
+    //LOGPRINT("unexpected 0 byte at offset %d...\n",foffset);
     }
-    if (i == 0x21) {		// a "gif extension"
+    if (i == 0x21) {        // a "gif extension"
       //LOGPRINT("Code 0x21->Gif extension\n");
       ch = nextbyte();
       blocklen = nextbyte();
+      if(blocklen<0) blocklen=0;
+      if(blocklen>255) blocklen=255;
 
       if (ch==0xF9 && blocklen==4) { // Netscape animation extension
         //LOGPRINT("ANIMATION EXTENSION START OF (1-based) FRAME %d FOUND\n",(FrameCount+1));
         is_animation=1;
-	char bits;
-	bits = nextbyte();  
-	//LOGPRINT("bits=%d\n",bits);
+        char bits;
+        bits = nextbyte();
+        //LOGPRINT("bits=%d\n",bits);
 
-	delay=getshort();
-	//LOGPRINT("Delay=%d x 10 msec\n",delay);
-        FrameDelay->push_back(delay);
+        int delay=getshort();
+        //LOGPRINT("Delay=%d x 10 msec\n",delay);
+        FrameDelay.push_back(delay);
 
-	transparent_pixel = nextbyte(); 
-	//LOGPRINT("Transpix=%d\n",transparent_pixel);
+        transparent_pixel = nextbyte();
+        //LOGPRINT("Transpix=%d\n",transparent_pixel);
+        if(transparent_pixel>255) transparent_pixel=255;
 
-        has_transparent=0;
-	if (bits & 1) has_transparent = 1; 
-	//LOGPRINT("Has_transp=%d\n",has_transparent);
+        if (bits & 1) has_transparent = 1;
+        //LOGPRINT("Has_transp=%d\n",has_transparent);
 
-	i=nextbyte(); 
-	//LOGPRINT("Extension def block end (must be 0): %d\n",end);
+        i=nextbyte();
+        //LOGPRINT("Extension def block end (must be 0): %d\n",end);
 
         //LOGPRINT("Image (code 2C) is expected to follow.\n");
-	continue;
+        continue;
       } else if (ch == 0xFF) { // Netscape repeat count
-          while(blocklen>0) {
-             ch=nextbyte();
-             blocklen--;
-          }	
-	  int cmd=getshort();
-          if (cmd==0x103) {
-          this->repcount=getshort();
-          } else { ch=getshort(); this->repcount=0; /* loop forever */ }
+        while(blocklen>0) {
           ch=nextbyte();
-//        for (int x=1;x<5;x++) {
-//        int rc=nextbyte(); blocklen--;
-//        printf("Repeat count = %d\n",rc);
-//        }
-	//;
-	  //("Repeat count=%d\n",this->repcount);
-	  continue;
+           blocklen--;
+        }
+        int cmd=getshort();
+        if (cmd==0x103) {
+          repcount=getshort();
+        } else { ch=getshort(); repcount=0; /* loop forever */ }
+        ch=nextbyte();
+
+        //("Repeat count=%d\n",this->repcount);
+        continue;
 
       } else if (ch != 0xFE) { //Gif Comment
-	Fl::warning("%s: unknown gif extension 0x%02x.", infname, ch);
+        Fl::warning("%s: unknown gif extension 0x%02x.", infname, ch);
       }
-    } else if (i == 0x2c) {	// an image      
+    } else if (i == 0x2c) {    // an image
       //LOGPRINT("Image coming up.\n");
-      int xpos=getshort(); 
+      int xpos=getshort();
       //LOGPRINT("xpos of image is %d\n",xpos);
       int ypos=getshort();
       //LOGPRINT("ypos of image is %d\n",ypos);
@@ -625,37 +575,36 @@ Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(const char *infname) : Fl_Pixmap((c
       Interlace = ((ch & 0x40) != 0);
       //LOGPRINT("Interlace=%d\n",Interlace);
       //LOGPRINT("HaveColormap=%d\n",ch&0x80);
-      localcolormap=0;
-      if (ch&0x80) { 
+      if (ch&0x80) {
         //LOGPRINT("Read local colormap\n");
         localcolormap=1;
-	// read local color map
-	int n = 2<<(ch&7);
-	for (i=0; i < n; i++) {	
-	  Red[i] = (uchar)nextbyte();
-	  Green[i] = (uchar)nextbyte();
-	  Blue[i] = (uchar)nextbyte();
-	}
+        // read local color map
+        int n = 2<<(ch&7);
+        for (i=0; i < n; i++) {
+          Red[i] = (uchar)nextbyte();
+          Green[i] = (uchar)nextbyte();
+          Blue[i] = (uchar)nextbyte();
+        }
       }
       CodeSize = ((uchar)nextbyte())+1;
       //LOGPRINT("Code size is %d\n",CodeSize);
       // okay, this is the image we want
       FrameCount++;
-	  //LOGPRINT("====Frame %d start of image data for %s====\n",FrameCount,infname);
-          //LOGPRINT("Bits per pixel=%d\n",BitsPerPixel);
-	  int readok=read_image_data(xpos,ypos,frameWidth,frameHeight,BitsPerPixel);
-	  if (readok!=0) {
-	      Fl::error("Fl_Animated_GIF_Image: %s - LZW Barf!", infname); 
-	  } else {
-	      /* We are done reading the image data for this frame, 
+      //LOGPRINT("====Frame %d start of image data for %s====\n",FrameCount,infname);
+      //LOGPRINT("Bits per pixel=%d\n",BitsPerPixel);
+      int readok=read_image_data(xpos,ypos,frameWidth,frameHeight,BitsPerPixel);
+      if (readok!=0) {
+        Fl::error("Fl_Animated_GIF_Image: %s - LZW Barf!", infname);
+      } else {
+        /* We are done reading the image data for this frame,
                  now convert to (full width) xpm: */
-	      convert_to_xpm(xpos,ypos,frameWidth,frameHeight,BitsPerPixel);
-	  }
+        convert_to_xpm(xpos,ypos,frameWidth,frameHeight,BitsPerPixel);
+      }
 
-	// Decode all frames; this is why the next line is commented out.
-        //if (FrameCount==1) break; // this is the frame we wanted all along.
-        //LOGPRINT("Blocklen=%d\n",blocklen);
-	continue;
+      // Decode all frames; this is why the next line is commented out.
+      //if (FrameCount==1) break; // this is the frame we wanted all along.
+      //LOGPRINT("Blocklen=%d\n",blocklen);
+      continue;
     } else {
       Fl::warning("%s: unknown gif code 0x%02x, offset %d", infname, i,foffset);
       blocklen = 0;
@@ -665,14 +614,12 @@ Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(const char *infname) : Fl_Pixmap((c
     // skip the data:
     while (blocklen>0) {while (blocklen--) {ch = nextbyte();} blocklen=nextbyte();}
   }
-  currframe=0;
 
   if (FrameCount>1)
-  {
-      animate(this);
-  } else {
-	select_frame(0);
-  }
+    animate(this);
+  else
+    select_frame(0);
+
   fclose(GifFile);
 }
 
