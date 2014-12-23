@@ -1,7 +1,7 @@
 //
-// "$Id: Fl_GIF_Image.cxx 5845 2007-05-20 00:01:06Z mike $"
+// "$Id: Fl_Animated_GIF_Image.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
-// Fl_GIF_Image routines.
+// Fl_Animated_GIF_Image routines.
 //
 // Copyright 1997-2005 by Bill Spitzak and others.
 //
@@ -33,7 +33,7 @@
 //
 
 #include <FL/Fl.H>
-#include <FL/Fl_GIF_Image.H>
+#include <FL/Fl_Animated_GIF_Image.H>
 #include <FL/Fl_Widget.H>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,7 +79,7 @@
 
 typedef unsigned char uchar;
 
-int Fl_GIF_Image::nextbyte()
+int Fl_Animated_GIF_Image::nextbyte()
 {
 	int x=getc(GifFile);
 	//LOGPRINT("Read  0x%02x from offset %d (0x%02x)\n",x,foffset,foffset);
@@ -88,7 +88,7 @@ int Fl_GIF_Image::nextbyte()
 
 }
 
-int Fl_GIF_Image::getshort()
+int Fl_Animated_GIF_Image::getshort()
 {
 	int x=nextbyte();
 	int y=nextbyte();
@@ -97,12 +97,12 @@ int Fl_GIF_Image::getshort()
 	return x+(y*256);
 }
 
-unsigned int Fl_GIF_Image::framecount()
+unsigned int Fl_Animated_GIF_Image::framecount()
 {
 	return this->FrameCount;
 }
 
-unsigned int Fl_GIF_Image::framedelay()
+unsigned int Fl_Animated_GIF_Image::framedelay()
 {
 	/* returns delay of current frame in msec */
         unsigned int currdelay=(*FrameDelay)[currframe]; // in 1/100 sec.
@@ -110,13 +110,13 @@ unsigned int Fl_GIF_Image::framedelay()
 }
 
 
-void Fl_GIF_Image::framedelay(unsigned int newdelay)
+void Fl_Animated_GIF_Image::framedelay(unsigned int newdelay)
 {
 	unsigned int mynewdelay=(unsigned int)(newdelay/10);
 	(*FrameDelay)[currframe]=mynewdelay;
 }
 
-int Fl_GIF_Image::read_image_data(int Left,int top,int frameWidth,int frameHeight,int BitsPerPixel)
+int Fl_Animated_GIF_Image::read_image_data(int Left,int top,int frameWidth,int frameHeight,int BitsPerPixel)
 {
   //LOGPRINT("Reading image data.\n");
   int ColorMapSize = 1 << BitsPerPixel;
@@ -243,7 +243,7 @@ int Fl_GIF_Image::read_image_data(int Left,int top,int frameWidth,int frameHeigh
   return 0; //returning;
 }
 
-void Fl_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int frameHeight,int BitsPerPixel)
+void Fl_Animated_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int frameHeight,int BitsPerPixel)
 {
   //... actually, probably this image is already canvas size.
   int ColorMapSize = 1 << BitsPerPixel;
@@ -333,7 +333,7 @@ void Fl_GIF_Image::convert_to_xpm(int Left,int Top,int frameWidth,int frameHeigh
 
 }
 
-Fl_GIF_Image::~Fl_GIF_Image()
+Fl_Animated_GIF_Image::~Fl_Animated_GIF_Image()
 {
 	/* stop using the data about to disappear */
 	Fl::remove_timeout(this->animate); 
@@ -368,7 +368,7 @@ Fl_GIF_Image::~Fl_GIF_Image()
 	delete FrameDelay; FrameDelay=0;
 }
 
-void Fl_GIF_Image::animating(int yesno)
+void Fl_Animated_GIF_Image::animating(int yesno)
 {
 	/* Set animation for running: 1=yes, 0=no
            Lacking a standardised bool type, the 
@@ -390,12 +390,12 @@ void Fl_GIF_Image::animating(int yesno)
 	return;
 }
 
-int Fl_GIF_Image::animating()
+int Fl_Animated_GIF_Image::animating()
 {
 	return run_animation;
 }
 
-void Fl_GIF_Image::select_frame(unsigned int framenum)
+void Fl_Animated_GIF_Image::select_frame(unsigned int framenum)
 {
 
   if (framenum>=FrameCount) return;
@@ -406,9 +406,9 @@ void Fl_GIF_Image::select_frame(unsigned int framenum)
 
 }
 
-void Fl_GIF_Image::animate(void* instance)
+void Fl_Animated_GIF_Image::animate(void* instance)
 {
-	Fl_GIF_Image* mythis=(Fl_GIF_Image*)instance;
+	Fl_Animated_GIF_Image* mythis=(Fl_Animated_GIF_Image*)instance;
 //	//LOGPRINT("animate, currframe=%d\n",mythis->currframe);
 
 	mythis->currframe++;
@@ -443,28 +443,28 @@ void Fl_GIF_Image::animate(void* instance)
 	return;
 }
 
-unsigned int Fl_GIF_Image::repeatcount()
+unsigned int Fl_Animated_GIF_Image::repeatcount()
 {
 	return this->repcount;
 }
 
-void Fl_GIF_Image::repeatcount(unsigned int newcount)
+void Fl_Animated_GIF_Image::repeatcount(unsigned int newcount)
 {
 	this->repcount=newcount;
 }
 
-Fl_Widget* Fl_GIF_Image::parent()
+Fl_Widget* Fl_Animated_GIF_Image::parent()
 {
 	return this->_parent;
 }
 
-void Fl_GIF_Image::parent(Fl_Widget* p_parent)
+void Fl_Animated_GIF_Image::parent(Fl_Widget* p_parent)
 {
 	this->_parent=p_parent;
 }
 
-Fl_GIF_Image::Fl_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
-  //LOGPRINT("Fl_GIF_Image::Fl_GIF_Image(\"%s\")\n",infname);
+Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
+  //LOGPRINT("Fl_Animated_GIF_Image::Fl_Animated_GIF_Image(\"%s\")\n",infname);
   int delay; // not used for now
   _parent=0;
   FrameCount=0;
@@ -484,7 +484,7 @@ Fl_GIF_Image::Fl_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
   Suffix=_Suffix;
   
   if ((GifFile = fopen(infname, "rb")) == NULL) {
-    Fl::error("Fl_GIF_Image: Unable to open %s!", infname);
+    Fl::error("Fl_Animated_GIF_Image: Unable to open %s!", infname);
     return;
   }
 
@@ -495,7 +495,7 @@ Fl_GIF_Image::Fl_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
   }
   if (b[0]!='G' || b[1]!='I' || b[2] != 'F') {
     fclose(GifFile);
-    Fl::error("Fl_GIF_Image: %s is not a GIF file.\n", infname);
+    Fl::error("Fl_Animated_GIF_Image: %s is not a GIF file.\n", infname);
     return;
   }
   if (b[3]!='8' || b[4]>'9' || b[5]!= 'a')
@@ -548,7 +548,7 @@ Fl_GIF_Image::Fl_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
 
     if (i < 0) {
       fclose(GifFile);
-      Fl::error("Fl_GIF_Image: %s - unexpected EOF",infname); 
+      Fl::error("Fl_Animated_GIF_Image: %s - unexpected EOF",infname); 
       return;
     }
 
@@ -645,7 +645,7 @@ Fl_GIF_Image::Fl_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
           //LOGPRINT("Bits per pixel=%d\n",BitsPerPixel);
 	  int readok=read_image_data(xpos,ypos,frameWidth,frameHeight,BitsPerPixel);
 	  if (readok!=0) {
-	      Fl::error("Fl_GIF_Image: %s - LZW Barf!", infname); 
+	      Fl::error("Fl_Animated_GIF_Image: %s - LZW Barf!", infname); 
 	  } else {
 	      /* We are done reading the image data for this frame, 
                  now convert to (full width) xpm: */
@@ -678,5 +678,5 @@ Fl_GIF_Image::Fl_GIF_Image(const char *infname) : Fl_Pixmap((char *const*)0) {
 
 
 //
-// End of "$Id: Fl_GIF_Image.cxx 5845 2007-05-20 00:01:06Z mike $".
+// End of "$Id: Fl_Animated_GIF_Image.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

@@ -175,6 +175,7 @@ FormsObjs = \
 # libfltk_images.a
 ImagesObjs = \
 	src/fl_images_core.o \
+	src/Fl_Animated_GIF_Image.o \
 	src/Fl_BMP_Image.o \
 	src/Fl_File_Icon2.o \
 	src/Fl_GIF_Image.o \

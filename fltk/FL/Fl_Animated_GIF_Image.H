@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_GIF_Image.H 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Animated_GIF_Image.H 4288 2005-04-16 00:13:17Z mike $"
 //
 // GIF image header file for the Fast Light Tool Kit (FLTK).
 //
@@ -25,14 +25,14 @@
 //     http://www.fltk.org/str.php
 //
 
-#ifndef Fl_GIF_Image_H
-#define Fl_GIF_Image_H
+#ifndef Fl_Animated_GIF_Image_H
+#define Fl_Animated_GIF_Image_H
 #  include "Fl_Pixmap.H"
 #include <FL/Fl.H>
 #include <stdio.h>
 #include <vector>
 
-class FL_EXPORT Fl_GIF_Image : public Fl_Pixmap {
+class FL_EXPORT Fl_Animated_GIF_Image : public Fl_Pixmap {
   private:
   unsigned int FrameCount; // Number of frames in (animated) GIF image
   Fl_Widget* _parent; 
@@ -78,12 +78,12 @@ class FL_EXPORT Fl_GIF_Image : public Fl_Pixmap {
   void framedelay(unsigned int newdelay_msec); 
   unsigned int repeatcount();
   void repeatcount(unsigned int newcount);
-  Fl_GIF_Image(const char* filename);
-  ~Fl_GIF_Image();
+  Fl_Animated_GIF_Image(const char* filename);
+  ~Fl_Animated_GIF_Image();
 };
 
 #endif
 
 //
-// End of "$Id: Fl_GIF_Image.H 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Animated_GIF_Image.H 4288 2005-04-16 00:13:17Z mike $".
 //
